@@ -1,6 +1,6 @@
 # HiveFinder
 
-> A centralized platform to connect students with clubs, organizations, and events on campus — built with **Next.js**.
+> A centralized platform to connect students with clubs, organizations, and events on campus.
 
 ---
 
