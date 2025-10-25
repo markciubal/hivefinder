@@ -20,7 +20,7 @@
 Developed for:
 
 **CSC 131: Computer Software Engineering (Fall 2025)**  
-Section 4 – 82526
+Section 4 - 82526
 
 **Team HiveFinders (Group 11):**
 - Annyus Chandler - Backend Developer  
