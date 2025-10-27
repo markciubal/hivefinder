@@ -1,11 +1,18 @@
-import React from 'react'
+"use client";
+import { useRouter } from "next/navigation";
 
-function DefaultButton({ label,onClick }) {
+export default function DefaultButton({ type, url, label }) {
+  const router = useRouter();
+
+  const buttonHandler = () => {
+    if (type === "link") {
+      router.push(url);
+    }
+  };
+
   return (
-    <button onClick={onClick} className="px-4 py-2 m-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
+    <button onClick={buttonHandler} className="px-4 py-2 m-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700">
       {label}
     </button>
-  )
+  );
 }
-
-export default DefaultButton
