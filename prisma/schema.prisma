@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+
+
+enum Role {
+  SUPERUSER
+  MODERATOR
+  MEMBER
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String    @unique
+  password      String?
+  role          Role      @default(MEMBER)
+  memberships   Member[]       // clubs they belong to
+  moderatedClubs ClubModerator[]  // clubs they moderate
+  createdAt     DateTime  @default(now())
+}
+
+model Club {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  members     Member[]       // users who belong to this club
+  moderators  ClubModerator[]  // moderators
+  createdAt   DateTime       @default(now())
+}
+
+model Member {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  clubId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  club      Club     @relation(fields: [clubId], references: [id])
+  joinedAt  DateTime @default(now())
+}
+
+model ClubModerator {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String  @db.ObjectId
+  clubId   String  @db.ObjectId
+  user     User    @relation(fields: [userId], references: [id])
+  club     Club    @relation(fields: [clubId], references: [id])
+  assignedAt DateTime @default(now())
+}
