@@ -126,7 +126,7 @@ export default function Header() {
                       </svg>
                     </div>
                     <div className="flex-auto">
-                      <a href="#" className="block font-semibold text-black">
+                      <a href="/account" className="block font-semibold text-black">
                         My Account
                         <span className="absolute inset-0" />
                       </a>
@@ -274,7 +274,7 @@ export default function Header() {
                       aria-label="Account"
                     >
                       <a
-                        href="#"
+                        href="/account"
                         className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
                       >
                         My Account
