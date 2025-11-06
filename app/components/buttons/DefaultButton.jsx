@@ -1,18 +1,10 @@
-"use client";
-import { useRouter } from "next/navigation";
+'use client';
+import Link from 'next/link';
 
-export default function DefaultButton({ type, url, label }) {
-  const router = useRouter();
-
-  const buttonHandler = () => {
-    if (type === "link") {
-      router.push(url);
-    }
-  };
-
-  return (
-    <button onClick={buttonHandler} className="px-4 py-2 m-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700">
-      {label}
-    </button>
-  );
+export default function DefaultButton({ type = 'link', label, url = '#', onClick }) {
+  const base = "inline-block mt-4 px-5 py-2 rounded-md bg-[#0b5a21] text-white font-semibold";
+  if (type === 'link') {
+    return <Link href={url} className={base}>{label}</Link>;
+  }
+  return <button type="button" onClick={onClick} className={base}>{label}</button>;
 }
