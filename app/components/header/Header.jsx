@@ -1,37 +1,56 @@
-'use client';
+"use client";
 
-import React, { useState, useRef } from 'react';
-import Link from 'next/link';
-
+import React, { useState, useRef } from "react";
+import Image from "next/image";
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
-  const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
-  const accountBtnRef = useRef(null);
+  const [desktopProductOpen, setDesktopProductOpen] = useState(false);
+  const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
+  const productBtnRef = useRef(null);
 
   return (
-    <header className="bg-white sticky top-0 z-[1000]">
-      <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
+    <header className="bg-white">
+      <nav
+        aria-label="Global"
+        className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
+      >
         <div className="flex lg:flex-1">
-          <Link href="/" className="-m-1.5 p-1.5">
-            <span className="sr-only">HiveFinder</span>
-            <img src="/logo.png" alt="HiveFinder" className="h-8 w-auto" />
-          </Link>
+          <a href="#" className="-m-1.5 p-1.5">
+            <span className="sr-only">Your Company</span>
+           <img 
+             src="logo.png"
+             alt=""
+             className="h-8 w-auto"
+           />
+          </a>
         </div>
 
+        {/* Mobile menu button */}
         <div className="flex lg:hidden">
           <button
             type="button"
-            onClick={() => setMobileOpen(true)}
             aria-label="Open main menu"
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-500"
+            onClick={() => setMobileOpen(true)}
+            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-400"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-6">
-              <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden="true"
+              className="size-6"
+            >
+              <path
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </button>
         </div>
 
+        {/* Desktop nav group */}
         <div className="hidden lg:flex lg:gap-x-12">
           <a href="/" className="text-sm/6 font-semibold text-black">
             Home
@@ -45,30 +64,162 @@ export default function Header() {
           {/* Desktop Product popover */}
           <div className="relative">
             <button
-              ref={accountBtnRef}
+              ref={productBtnRef}
               type="button"
-              onClick={() => setAccountOpen(s => !s)}
-              className="flex items-center gap-x-1 text-sm font-semibold text-black"
+              aria-haspopup="menu"
+              aria-expanded={desktopProductOpen}
+              onClick={() => setDesktopProductOpen((s) => !s)}
+              onBlur={(e) => {
+                // close when focus leaves the button + panel
+                // delay to allow clicks within panel
+                setTimeout(() => {
+                  if (
+                    !e.currentTarget.contains(document.activeElement) &&
+                    !document.getElementById("desktop-menu-product")?.contains(document.activeElement)
+                  ) {
+                    setDesktopProductOpen(false);
+                  }
+                }, 0);
+              }}
+              className="flex items-center gap-x-1 text-sm/6 font-semibold text-black"
             >
               Account
-              <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-gray-500">
+              <svg
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+                className="size-5 flex-none text-gray-500"
+              >
                 <path
-                  fillRule="evenodd"
                   d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
                   clipRule="evenodd"
+                  fillRule="evenodd"
                 />
               </svg>
             </button>
 
-            {accountOpen && (
-              <div className="absolute right-0 mt-3 w-40 rounded-lg bg-white shadow ring-1 ring-gray-200 z-50">
-                <div className="p-2">
-                  <Link href="/login" className="block rounded px-3 py-2 text-sm font-semibold text-black hover:bg-gray-50">
-                    Log in
-                  </Link>
-                  <Link href="/signUp" className="block rounded px-3 py-2 text-sm font-semibold text-black hover:bg-gray-50">
-                    Sign up
-                  </Link>
+            {desktopProductOpen && (
+              <div
+                id="desktop-menu-product"
+                role="menu"
+                aria-label="Product"
+                tabIndex={-1}
+                className="absolute z-50 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white outline outline-1 -outline-offset-1 outline-white/10 backdrop:bg-transparent"
+              >
+                <div className="p-4">
+                  {/* Item */}
+                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-white/5">
+                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50 group-hover:bg-gray-700">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                        className="size-6 text-gray-400 group-hover:text-black"
+                      >
+                        <path
+                          d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-auto">
+                      <a href="/account" className="block font-semibold text-black">
+                        My Account
+                        <span className="absolute inset-0" />
+                      </a>
+                      <p className="mt-1 text-gray-400">
+                        Speak directly to your customers
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Item */}
+                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-white/5">
+                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50 group-hover:bg-gray-700">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                        className="size-6 text-gray-400 group-hover:text-black"
+                      >
+                        <path
+                          d="M7.864 4.243A7.5 7.5 0 0 1 19.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 0 0 4.5 10.5a7.464 7.464 0 0 1-1.15 3.993m1.989 3.559A11.209 11.209 0 0 0 8.25 10.5a3.75 3.75 0 1 1 7.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 0 1-3.6 9.75m6.633-4.596a18.666 18.666 0 0 1-2.485 5.33"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-auto">
+                      <a href="#" className="block font-semibold text-black">
+                        Club Administration
+                        <span className="absolute inset-0" />
+                      </a>
+                      <p className="mt-1 text-gray-400">
+                        Manage your clubs here.
+                      </p>
+                    </div>
+                  </div>
+                  {/* Item */}
+                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-white/5">
+                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50 group-hover:bg-gray-700">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                        className="size-6 text-gray-400 group-hover:text-black"
+                      >
+                        <path
+                          d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-auto">
+                      <a href="/login" className="block font-semibold text-black">
+                        Log In
+                        <span className="absolute inset-0" />
+                      </a>
+                      <p className="mt-1 text-gray-400">
+                        Speak directly to your customers
+                      </p>
+                    </div>
+                  </div>
+                  {/* Item */}
+                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-white/5">
+                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50 group-hover:bg-gray-700">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                        className="size-6 text-gray-400 group-hover:text-black"
+                      >
+                        <path
+                          d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-auto">
+                      <a href="/account" className="block font-semibold text-black">
+                        Sign Up
+                        <span className="absolute inset-0" />
+                      </a>
+                      <p className="mt-1 text-gray-400">
+                        Speak directly to your customers
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -76,56 +227,12 @@ export default function Header() {
         </div>
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <Link href="/login" className="text-sm font-semibold text-black">Log in →</Link>
+          <a href="/login" className="text-sm/6 font-semibold text-black">
+            Log in <span aria-hidden="true">→</span>
+          </a>
         </div>
       </nav>
 
-      {mobileOpen && (
-        <div className="lg:hidden">
-          <div className="fixed inset-0 z-40 bg-black/30" onClick={() => setMobileOpen(false)} />
-          <div className="fixed inset-y-0 right-0 z-50 w-full bg-white p-6 sm:max-w-sm shadow-xl">
-            <div className="flex items-center justify-between">
-              <Link href="/" className="-m-1.5 p-1.5">
-                <img src="/logo.png" alt="HiveFinder" className="h-8 w-auto" />
-              </Link>
-              <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                className="-m-2.5 rounded-md p-2.5 text-gray-500"
-                aria-label="Close menu"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-6">
-                  <path d="M6 18 18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="mt-6 space-y-4">
-              <Link href="/" className="block text-base font-semibold text-black">Home</Link>
-              <Link href="/clubPage" className="block text-base font-semibold text-black">Club</Link>
-              <Link href="/friendFinder" className="block text-base font-semibold text-black">Friend Finder</Link>
-
-              <button
-                type="button"
-                onClick={() => setMobileAccountOpen(s => !s)}
-                className="flex w-full items-center justify-between text-base font-semibold text-black"
-              >
-                Account
-                <svg viewBox="0 0 20 20" fill="currentColor" className={`w-5 h-5 transform transition ${mobileAccountOpen ? 'rotate-180' : ''}`}>
-                  <path
-                    fillRule="evenodd"
-                    d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-
-              {mobileAccountOpen && (
-                <div className="pl-3 space-y-2">
-                  <Link href="/login" className="block text-base font-semibold text-black">Log in</Link>
-                  <Link href="/signUp" className="block text-base font-semibold text-black">Sign up</Link>
-                </div>
-              )}
      {/* Mobile menu "dialog" */}
     {mobileOpen && (
       <div className="lg:hidden">
