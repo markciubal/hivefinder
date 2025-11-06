@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/client": "^6.18.0",
     "@tailwindplus/elements": "^1.0.18",
+    "mongodb": "^6.20.0",
     "next": "16.0.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"
@@ -21,6 +23,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.0",
+    "prisma": "^6.18.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
