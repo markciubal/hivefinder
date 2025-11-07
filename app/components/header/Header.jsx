@@ -211,12 +211,12 @@ export default function Header() {
                       </svg>
                     </div>
                     <div className="flex-auto">
-                      <a href="/account" className="block font-semibold text-black">
+                      <a href="/signUp" className="block font-semibold text-black">
                         Sign Up
                         <span className="absolute inset-0" />
                       </a>
                       <p className="mt-1 text-gray-400">
-                        Speak directly to your customers
+                        Create an account
                       </p>
                     </div>
                   </div>
