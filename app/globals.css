@@ -5,6 +5,18 @@
   --foreground: #171717;
 }
 
+@layer utilities {
+  .text-xxs {
+    font-size: 0.625rem; /* 10px */
+    line-height: 1rem;   /* optional */
+  }
+
+  .text-xxxs {
+    font-size: 0.5rem;   /* 8px */
+    line-height: 0.75rem;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

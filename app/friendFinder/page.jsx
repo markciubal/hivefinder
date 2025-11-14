@@ -16,8 +16,10 @@
     const [clubFriends, setClubFriends] = useState([]);
     const [matchedStatistics, setMatchedStatistics] = useState({ interests: [], memberships: [] });
 
-    const sharedStyle = "text-xs m-1 px-4 py-2 bg-green-900 text-white rounded-full hover:bg-green-800! inline-block";
-    const normalStyle = "text-xs m-1 px-4 py-2 bg-gray-200 text-black rounded-full hover:bg-gray-100 inline-block";
+    const sharedStyle = "text-xxs m-[2px] px-2 py-1 bg-neutral-900 text-white rounded-full hover:bg-neutral-700! inline-block";
+    const normalStyle = "text-xxs m-[2px] px-2 py-1 bg-neutral-300 text-black rounded-full hover:bg-neutral-200 inline-block";
+    
+    const counterStyle = "mx-1 inline-flex items-center justify-center w-3 h-3 p-2 text-xxxs font-semibold text-neutral-800 bg-[#f4c201] rounded-full position-relative top-0 left-0";
 
     const handleFilterChange = (event) => {
       const { name, value } = event.target;
@@ -116,7 +118,7 @@
         <div className="hero-form">
           <div className="text-content-title">
             <p className="text-2 font-bold">Find Your Hive</p>
-            <p className="text-9">What are your interests?</p>
+            <p className="text-9">Can't find a club you're interested in? Find a friend!</p>
           </div>
 
           <div className="form-contact">
@@ -140,17 +142,38 @@
 
                       return (
                         <span key={index} className={style}>
-                          <input
-                            name="checkbox"
-                            type="checkbox"
-                            value={interest}
-                            onChange={handleFilterChange}
-                            className="form-checkbox h-2 w-2 mx-1 shrink-0 rounded border-gray-300 text-blue-600"
-                          />
-                          <span className="mx-1 inline-flex items-center justify-center w-6 h-6 p-2 text-xs font-semibold text-green-800 bg-green-200 rounded-full">
-                            {count}
-                          </span>
-                          {interest}
+                          <label className="flex items-center">
+                            <input
+                              name="checkbox"
+                              type="checkbox"
+                              value={interest}
+                              onChange={handleFilterChange}
+                              className="peer hidden"
+                            />
+
+                            {/* Star icon */}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              className="
+                                w-3 h-3 mx-0 shrink-0
+                                text-yellow-400
+                                transition
+                                peer-checked:fill-yellow-400
+                                peer-checked:stroke-yellow-400
+                                fill-transparent
+                                stroke-yellow-400
+                                stroke-[2]
+                                cursor-pointer
+                              "
+                            >
+                              <path d="M12 2l3.1 6.3L22 9.3l-5 4.9L18.2 21 12 17.8 5.8 21 7 14.2 2 9.3l6.9-1L12 2z" />
+                            </svg>
+                            <span className={counterStyle}>
+                              {count}
+                            </span>
+                            {interest}
+                          </label>                          
                         </span>
                       );
                     })}
@@ -164,18 +187,38 @@
                       const isShared = userSelf.memberships?.some(sc => sc.club === membership.club);
                       const style = isShared ? sharedStyle : normalStyle;
                       return (
-                        <span key={"user_" + userSelf.id + "_" + membership.club} className={style}>
-                          <input
-                            name="checkbox"
-                            type="checkbox"
-                            value={membership.club}
-                            onChange={handleFilterChange}
-                            className="form-checkbox h-2 w-2 mx-1 shrink-0 rounded border-gray-300 text-blue-600"
-                          />
-                          <span className="mx-1 inline-flex items-center justify-center w-6 h-6 p-2 text-xs font-semibold text-green-800 bg-green-200 rounded-full">
-                            {matchedStatistics.memberships.find(i => i.club === membership.club)?.count || 0}
-                          </span>
-                          {membership.club}
+                        <span key={"user_" + userSelf.id + "_" + membership.club} className={style}> <label className="flex items-center">
+                            <input
+                              name="checkbox"
+                              type="checkbox"
+                              value={membership.club}
+                              onChange={handleFilterChange}
+                              className="peer hidden"
+                            />
+
+                            {/* Star icon */}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              className="
+                                w-3 h-3 mx-0 shrink-0
+                                text-yellow-400
+                                transition
+                                peer-checked:fill-yellow-400
+                                peer-checked:stroke-yellow-400
+                                fill-transparent
+                                stroke-yellow-400
+                                stroke-[2]
+                                cursor-pointer
+                              "
+                            >
+                              <path d="M12 2l3.1 6.3L22 9.3l-5 4.9L18.2 21 12 17.8 5.8 21 7 14.2 2 9.3l6.9-1L12 2z" />
+                            </svg>
+                            <span className={counterStyle}>
+                                {matchedStatistics.memberships.find(i => i.club === membership.club)?.count || 0}
+                            </span>
+                            {membership.club}
+                          </label>                
                         </span>
                       );
                     })}
