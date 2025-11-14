@@ -20,7 +20,7 @@
     const normalStyle = "text-xxs m-[2px] px-2 py-1 bg-neutral-300 text-black rounded-full hover:bg-neutral-200 inline-block";
     
     const counterStyle = "mx-1 inline-flex items-center justify-center w-3 h-3 p-2 text-xxxs font-semibold text-neutral-800 bg-[#f4c201] rounded-full position-relative top-0 left-0";
-
+    const starStyle = "w-3 h-3 mx-0 shrink-0 text-yellow-400 transition peer-checked:scale-130 peer-checked:rotate-360 peer-checked:fill-yellow-400 peer-checked:stroke-yellow-400 fill-transparent stroke-gray-300 stroke-[3] cursor-pointer";
     const handleFilterChange = (event) => {
       const { name, value } = event.target;
       const selectedSimilarities = document.querySelectorAll('input[name="checkbox"]:checked');
@@ -118,7 +118,7 @@
         <div className="hero-form">
           <div className="text-content-title">
             <p className="text-2 font-bold">Find Your Hive</p>
-            <p className="text-9">Can't find a club you're interested in? Find a friend!</p>
+            <p className="text-9">No clubs for your interest? Find a friend!</p>
           </div>
 
           <div className="form-contact">
@@ -131,8 +131,8 @@
                     <label className="block text-center font-medium text-gray-700 mb-2">Filter by shared interests and clubs:</label>
                     <div className="flex justify-center">
                       <select onChange={handleFilterChange} id="andor" name="andor" className="border justify-center text-black border-gray-300 rounded-md p-2 mb-4 w-25">
-                        <option value="and">AND</option>
                         <option value="or">OR</option>
+                        <option value="and">AND</option>
                       </select>
                     </div>
                     {userSelf.interests.map((interest, index) => {
@@ -155,17 +155,7 @@
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
-                              className="
-                                w-3 h-3 mx-0 shrink-0
-                                text-yellow-400
-                                transition
-                                peer-checked:fill-yellow-400
-                                peer-checked:stroke-yellow-400
-                                fill-transparent
-                                stroke-yellow-400
-                                stroke-[2]
-                                cursor-pointer
-                              "
+                              className={starStyle}
                             >
                               <path d="M12 2l3.1 6.3L22 9.3l-5 4.9L18.2 21 12 17.8 5.8 21 7 14.2 2 9.3l6.9-1L12 2z" />
                             </svg>
@@ -200,17 +190,7 @@
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
-                              className="
-                                w-3 h-3 mx-0 shrink-0
-                                text-yellow-400
-                                transition
-                                peer-checked:fill-yellow-400
-                                peer-checked:stroke-yellow-400
-                                fill-transparent
-                                stroke-yellow-400
-                                stroke-[2]
-                                cursor-pointer
-                              "
+                              className={starStyle}
                             >
                               <path d="M12 2l3.1 6.3L22 9.3l-5 4.9L18.2 21 12 17.8 5.8 21 7 14.2 2 9.3l6.9-1L12 2z" />
                             </svg>
