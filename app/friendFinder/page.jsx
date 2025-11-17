@@ -20,8 +20,8 @@
     const [otherMembershipsModal, setOtherMembershipsModal] = useState(null);
     // null or { username, interests }
 
-    const sharedStyle = "text-xxs m-[2px] px-2 py-1 bg-neutral-900 text-white rounded-full hover:bg-neutral-700! inline-block";
-    const normalStyle = "text-xxs m-[2px] px-2 py-1 bg-neutral-300 text-black rounded-full hover:bg-neutral-200 inline-block";
+    const sharedStyle = "text-xxs m-[2px] px-1 py-1 bg-neutral-900 text-white rounded-md hover:bg-neutral-700! inline-block";
+    const normalStyle = "text-xxs m-[2px] px-1 py-1 bg-neutral-300 text-black rounded-md hover:bg-neutral-200 inline-block";
     
     const counterStyle = "mx-1 inline-flex items-center justify-center w-3 h-3 p-2 text-xxxs font-semibold text-neutral-800 bg-[#f4c201] rounded-full position-relative top-0 left-0";
     const starStyle = "w-3 h-3 mx-0 shrink-0 text-yellow-400 transition peer-checked:scale-130 peer-checked:rotate-360 peer-checked:fill-yellow-400 peer-checked:stroke-yellow-400 fill-transparent stroke-gray-300 stroke-[3] cursor-pointer";
@@ -61,7 +61,7 @@
             interests: randomInterests,
             memberships: [
             { club: "Men's Soccer Club" },
-            { club: "National Association for Music Education Collegiate" },
+            { club: "The Belonging Collective" },
             ]
         });
     }, []);
@@ -119,64 +119,58 @@
     return (
       <>
         <Header />
-        <div className="hero-form">
-          <div className="text-content-title">
-            <p className="text-2 font-bold">Find Your Hive</p>
-            <p className="text-9">Find friends who share your interests!</p>
-          </div>
+        <div className="">
+          <div className=" text-center">
+          <p className="text-2 font-bold">Find Your Hive</p>
+            {/* Card grid: self + matches */}
+            <div className="w-full flex justify-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-5xl justify-center">
+                <div className="text-center col-span-full">
+                  {userSelf?.interests && matchedStatistics && (
+                    <div
+                      key={"interests_" + userSelf.id}
+                      className="col-span-full border-b border-gray-300 p-4 rounded-lg shadow-sm bg-white text-center"
+                    >
+                      <h3 className="text-lg font-semibold text-black">{userSelf.username}</h3>
+                      <h4 className="text-black">Filter by Common Interests</h4>
 
-          <div className="form-contact">
-                <div className="w-full text-center">
-                  <h3 className="text-black">We found {filteredFriends.length} friends:</h3>
+                      {userSelf.interests.map((interest, index) => {
+                        const isShared = matchedStatistics.interests.some(
+                          (i) => i.name === interest
+                        );
+                        const style = isShared ? sharedStyle : normalStyle;
+                        const count =
+                          matchedStatistics.interests.find((i) => i.name === interest)
+                            ?.count || 0;
 
-                  {/* Card grid: self + matches */}
-                  <div className="mt-4 flex flex-wrap justify-center">
-                    {userSelf?.interests && matchedStatistics && (
-                      <div
-                        key={"interests_" + userSelf.id}
-                        className="border-b border-gray-300 p-4 m-2 w-full sm:w-[48%] lg:w-[30%] max-w-sm rounded-lg shadow-sm bg-white float-left text-left"
-                      >
-                        <h3 className="text-md font-semibold text-black">{userSelf.username}</h3>
-                        <h4 className="text-sm text-gray-600">Interests</h4>
-                        {userSelf.interests.map((interest, index) => {
-                          const isShared = matchedStatistics.interests.some(
-                            (i) => i.name === interest
-                          );
-                          const style = isShared ? sharedStyle : normalStyle;
-                          const count =
-                            matchedStatistics.interests.find((i) => i.name === interest)
-                              ?.count || 0;
+                        return (
+                          <span key={index} className={style}>
+                            <label className="flex items-center">
+                              <input
+                                name="checkbox"
+                                type="checkbox"
+                                value={interest}
+                                onChange={handleFilterChange}
+                                className="peer hidden"
+                              />
+                              {/* Star icon */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                className={starStyle}
+                              >
+                                <path d="M12 2l3.1 6.3L22 9.3l-5 4.9L18.2 21 12 17.8 5.8 21 7 14.2 2 9.3l6.9-1L12 2z" />
+                              </svg>
+                              <span className={counterStyle}>{count}</span>
+                              {interest}
+                            </label>
+                          </span>
+                        );
+                      })}
 
-                          return (
-                            <span key={index} className={style}>
-                              <label className="flex items-center">
-                                <input
-                                  name="checkbox"
-                                  type="checkbox"
-                                  value={interest}
-                                  onChange={handleFilterChange}
-                                  className="peer hidden"
-                                />
-
-                                {/* Star icon */}
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 24 24"
-                                  className={starStyle}
-                                >
-                                  <path d="M12 2l3.1 6.3L22 9.3l-5 4.9L18.2 21 12 17.8 5.8 21 7 14.2 2 9.3l6.9-1L12 2z" />
-                                </svg>
-                                <span className={counterStyle}>{count}</span>
-                                {interest}
-                              </label>
-                            </span>
-                          );
-                        })}
-                        {userSelf?.memberships && (
-                        <div
-                          key={"clubs_" + userSelf.id}
-                        >
-                          <h4>Memberships</h4>
+                      {userSelf?.memberships && (
+                        <div key={"clubs_" + userSelf.id}>
+                          <h4>Filter by Common Memberships</h4>
                           {userSelf.memberships.map((membership, index) => {
                             console.log(matchedStatistics);
                             const isShared = userSelf.memberships?.some(
@@ -215,146 +209,132 @@
                               </span>
                             );
                           })}
-                          <div className="flex p-5 justify-center">
-                            <label className="mr-2 mt-2">
-                              Filter by:
-                            </label>
-                              <select
-                                onChange={handleFilterChange}
-                                id="andor"
-                                name="andor"
-                                className="border justify-center text-black border-gray-300 rounded-md p-2 mb-4 w-25"
+
+                          <div className="flex pt-4 justify-center">
+                            <label className="mr-2 mt-2">Filter by:</label>
+                            <select
+                              onChange={handleFilterChange}
+                              id="andor"
+                              name="andor"
+                              className="border justify-center text-black border-gray-300 rounded-md p-2 mb-4 w-25"
                             >
                               <option value="or">OR</option>
                               <option value="and">AND</option>
                             </select>
                           </div>
+
+                          <div className="w-full text-center">
+                            <p className="text-black">
+                              We found <b>{filteredFriends.length}</b> friends:
+                            </p>
+                          </div>
                         </div>
                       )}
-                      </div>
-                    )}
-
-                    
-
-                    {organizedFriends &&
-                      filteredFriends.map((user) => {
-                        const matchedInterests = user.interests.filter((interest) =>
-                          user.sharedInterests?.includes(interest)
-                        );
-                        const otherInterests = user.interests.filter(
-                          (interest) => !user.sharedInterests?.includes(interest)
-                        );
-
-                        const matchedMemberships = user.memberships.filter((membership) =>
-                          user.sharedClubs?.includes(membership)
-                        );
-                        const otherMemberships = user.memberships.filter(
-                          (membership) => !user.sharedClubs?.includes(membership)
-                        );
-                        console.log(user);
-                        console.log(otherMemberships);
-                        return (
-                          <div
-                            key={"user_" + user.id}
-                            className="border-b border-gray-300 p-4 m-2 w-full sm:w-[48%] lg:w-[30%] max-w-sm rounded-lg shadow-sm bg-white float-left text-left"
-                          >
-                            <h3 className="text-md font-semibold text-black">
-                              {user.username}
-                            </h3>
-
-                            {/* Interests */}
-                            <h4 className="text-sm text-gray-600">Interests</h4>
-
-                            {/* Only matched interests inline */}
-                            {matchedInterests.map((interest, index) => {
-                              const style = sharedStyle;
-                              return (
-                                <span
-                                  key={index}
-                                  className={`${style} text-[0.7rem]`}
-                                >
-                                  {interest}
-                                </span>
-                              );
-                            })}
-
-                            {/* Button to open modal for remaining interests */}
-                            {otherInterests.length > 0 && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setOtherInterestsModal({
-                                    username: user.username,
-                                    interests: otherInterests,
-                                  })
-                                }
-                                className="mt-2 ml-1 inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-[0.7rem] font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-100"
-                              >
-                                More interests
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-3 w-3"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              </button>
-                            )}
-
-                            {/* Memberships / Clubs */}
-                            <h4 className="mt-3 text-sm text-gray-600">Memberships</h4>
-
-                            {/* Only matched memberships inline */}
-                            {matchedMemberships.map((membership, index) => {
-                              const style = sharedStyle;
-                              return (
-                                <span
-                                  key={index}
-                                  className={`${style} text-[0.7rem]`}
-                                >
-                                  {membership.club}
-                                </span>
-                              );
-                            })}
-
-                            {/* Button to open modal for remaining memberships */}
-                            {otherMemberships.length > 0 && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setOtherMembershipsModal({
-                                    username: user.username,
-                                    memberships: otherMemberships,
-                                  })
-                                }
-                                className="mt-2 ml-1 inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-[0.7rem] font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-100"
-                              >
-                                More clubs
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-3 w-3"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                  </div>
+                    </div>
+                  )}
                 </div>
+                {/* Friend cards – tile as grid items */}
+                {organizedFriends &&
+                  filteredFriends.map((user) => {
+                    const matchedInterests = user.interests.filter((interest) =>
+                      user.sharedInterests?.includes(interest)
+                    );
+                    const otherInterests = user.interests.filter(
+                      (interest) => !user.sharedInterests?.includes(interest)
+                    );
 
+                    const matchedMemberships = user.memberships.filter((membership) =>
+                      user.sharedClubs?.includes(membership)
+                    );
+                    const otherMemberships = user.memberships.filter(
+                      (membership) => !user.sharedClubs?.includes(membership)
+                    );
+
+                    console.log(user);
+                    console.log(otherMemberships);
+
+                    return (
+                      <div
+                        key={"user_" + user.id}
+                        className="border border-gray-300 p-4 rounded-lg shadow-sm bg-white w-full h-full flex flex-col"
+                      >
+                        <h3 className="text-md font-semibold text-black">
+                          {user.username}
+                        </h3>
+
+                        {/* Interests */}
+                        <h4 className="text-sm text-gray-600">Interests</h4>
+
+                        {/* Only matched interests inline */}
+                        {matchedInterests.map((interest, index) => {
+                          const style = sharedStyle;
+                          return (
+                            <span
+                              key={index}
+                              className={`${style} text-[0.7rem]`}
+                            >
+                              {interest}
+                            </span>
+                          );
+                        })}
+
+                        {/* Button to open modal for remaining interests */}
+                        {otherInterests.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOtherInterestsModal({
+                                username: user.username,
+                                interests: otherInterests,
+                              })
+                            }
+                            className="mt-2 inline-flex justify-center items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-[0.7rem] font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-100"
+                          >
+                            More interests
+                          </button>
+                        )}
+
+                        {/* Memberships / Clubs */}
+                        <h4 className="mt-3 text-sm text-gray-600">Memberships</h4>
+
+                        {/* Only matched memberships inline */}
+                        {matchedMemberships.map((membership, index) => {
+                          const style = sharedStyle;
+                          return (
+                            <span
+                              key={index}
+                              className={`${style} text-[0.7rem]`}
+                            >
+                              {membership.club}
+                            </span>
+                          );
+                        })}
+
+                        {/* Button to open modal for remaining memberships */}
+                        {otherMemberships.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOtherMembershipsModal({
+                                username: user.username,
+                                memberships: otherMemberships,
+                              })
+                            }
+                            className="mt-2 inline-flex justify-center items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-[0.7rem] font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:ring-offset-gray-100"
+                          >
+                            More clubs
+                          </button>
+                        )}
+                        <button
+                          className="mt-2 inline-flex justify-center items-center gap-1 rounded-md border border-gray-300 bg-green-900 px-2 py-1 text-[0.7rem] font-medium text-white shadow-sm hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:ring-offset-gray-100"
+                        >
+                          Message {user.username}
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
           </div>
           {otherInterestsModal && (
                   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -376,7 +356,7 @@
 
                       {/* Body */}
                       <div className="px-4 py-3">
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1">
                           {otherInterestsModal.interests.map((interest, idx) => (
                             <span
                               key={idx}
@@ -421,7 +401,7 @@
 
                       {/* Body */}
                       <div className="px-4 py-3">
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1">
                           {otherMembershipsModal.memberships.map((membership, idx) => (
                             <span
                               key={idx}
