@@ -28,7 +28,7 @@ model User {
 
 model Club {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
+  name        String         @unique
   description String?
   members     Member[]       // users who belong to this club
   moderators  ClubModerator[]  // moderators

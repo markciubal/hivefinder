@@ -7,6 +7,8 @@ import Footer from '../components/footer/Footer.jsx';
 function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Clubs
   const [clubSearch, setClubSearch] = useState("");
@@ -31,34 +33,53 @@ function SignupPage() {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (clubRef.current && !clubRef.current.contains(e.target)) {
-        setClubDropdownOpen(false);
-      }
-      if (interestRef.current && !interestRef.current.contains(e.target)) {
-        setInterestDropdownOpen(false);
-      }
+      if (clubRef.current && !clubRef.current.contains(e.target)) setClubDropdownOpen(false);
+      if (interestRef.current && !interestRef.current.contains(e.target)) setInterestDropdownOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSubmit = (e) => {
+  // CSUS email validation
+  useEffect(() => {
+    if (!email) setEmailError(null);
+    else if (!email.endsWith("@csus.edu")) setEmailError("Only CSUS email accounts allowed");
+    else setEmailError(null);
+  }, [email]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ email, password, selectedClub, interests });
-    alert("Check console for current signup data!");
+    if (emailError) return;
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, selectedClub, interests }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Account created successfully!");
+        window.location.href = "/login";
+      } else {
+        alert(data.message || "Signup failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const addInterest = (interest) => {
-    setInterests([...interests, interest]);
-  };
-
-  const removeInterest = (interest) => {
-    setInterests(interests.filter((i) => i !== interest));
-  };
+  const addInterest = (interest) => setInterests([...interests, interest]);
+  const removeInterest = (interest) => setInterests(interests.filter((i) => i !== interest));
 
   return (
     <div className="page-container">
-      <Header /> {/* ✅ Render the universal header */}
+      <Header />
 
       <div className="container">
         <form className="signup-form" onSubmit={handleSubmit}>
@@ -73,6 +94,7 @@ function SignupPage() {
               required
             />
           </label>
+          {emailError && <p className="error-text">{emailError}</p>}
 
           <label>
             Password
@@ -91,10 +113,7 @@ function SignupPage() {
               type="text"
               placeholder="Search clubs..."
               value={clubSearch}
-              onChange={(e) => {
-                setClubSearch(e.target.value);
-                setClubDropdownOpen(true);
-              }}
+              onChange={(e) => { setClubSearch(e.target.value); setClubDropdownOpen(true); }}
               onFocus={() => setClubDropdownOpen(true)}
             />
             {clubDropdownOpen && filteredClubs.length > 0 && (
@@ -103,11 +122,7 @@ function SignupPage() {
                   <div
                     key={club}
                     className="dropdown-item"
-                    onClick={() => {
-                      setSelectedClub(club);
-                      setClubSearch(club);
-                      setClubDropdownOpen(false);
-                    }}
+                    onClick={() => { setSelectedClub(club); setClubSearch(club); setClubDropdownOpen(false); }}
                   >
                     {club}
                   </div>
@@ -120,10 +135,7 @@ function SignupPage() {
           {/* Interests Dropdown */}
           <label ref={interestRef}>
             Interests
-            <div
-              className="interest-dropdown-input"
-              onClick={() => setInterestDropdownOpen(true)}
-            >
+            <div className="interest-dropdown-input" onClick={() => setInterestDropdownOpen(true)}>
               <span className="placeholder">Select interests...</span>
             </div>
             {interestDropdownOpen && filteredInterests.length > 0 && (
@@ -148,84 +160,99 @@ function SignupPage() {
             </div>
           </label>
 
-          <button type="submit">Sign Up</button>
+          <button type="submit" disabled={!!emailError || loading}>
+            {loading ? "Signing up…" : "Sign Up"}
+          </button>
         </form>
       </div>
+
+      <Footer />
 
       <style jsx>{`
         .page-container {
           display: flex;
           flex-direction: column;
+          min-height: 100vh;
         }
         .container {
+          flex: 1;
           display: flex;
           justify-content: center;
           align-items: flex-start;
-          min-height: 100vh;
-          background-color: white;
-          padding-top: 50px;
+          padding: 60px 16px;
+          background-color: #f9f9f9;
         }
         .signup-form {
           display: flex;
           flex-direction: column;
-          gap: 20px;
-          padding: 40px;
-          border: 1px solid black;
+          gap: 18px;
+          padding: 30px;
+          border: 1px solid #ddd;
           border-radius: 8px;
-          width: 350px;
+          width: 380px;
+          background: #fff;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
         h1 {
           text-align: center;
-          font-size: 24px;
+          font-size: 26px;
+          margin-bottom: 10px;
         }
         label {
           display: flex;
           flex-direction: column;
           font-size: 14px;
-          position: relative;
         }
         input {
-          margin-top: 5px;
-          padding: 8px;
-          border: 1px solid black;
-          border-radius: 4px;
+          margin-top: 6px;
+          padding: 10px 12px;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          outline: none;
+        }
+        .error-text {
+          color: crimson;
+          margin-top: 4px;
+          font-size: 12px;
         }
         button {
-          padding: 10px;
-          background-color: black;
+          padding: 12px;
+          background-color: #0b5a21;
           color: white;
           border: none;
-          border-radius: 4px;
+          border-radius: 6px;
           cursor: pointer;
-          font-weight: bold;
+          font-weight: 600;
+          font-size: 14px;
         }
-        button:hover {
-          background-color: #333;
+        button:disabled {
+          background-color: #aaa;
+          cursor: not-allowed;
         }
-
-        /* Dropdowns now part of the flow */
         .dropdown {
-          border: 1px solid black;
+          border: 1px solid #ccc;
+          background: #fff;
           max-height: 150px;
           overflow-y: auto;
-          margin-top: 5px;
-          background: white;
+          margin-top: 4px;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .dropdown-item {
-          padding: 5px;
+          padding: 6px 10px;
           cursor: pointer;
         }
         .dropdown-item:hover {
           background-color: #f0f0f0;
         }
-
-        /* Interests tags */
         .interest-dropdown-input {
           padding: 8px;
-          border: 1px solid black;
-          border-radius: 4px;
+          border: 1px solid #ccc;
+          border-radius: 6px;
           cursor: pointer;
           min-height: 40px;
+          display: flex;
+          align-items: center;
         }
         .interest-dropdown-input .placeholder {
           color: #888;
@@ -233,17 +260,17 @@ function SignupPage() {
         .tags {
           display: flex;
           flex-wrap: wrap;
-          gap: 5px;
-          margin-top: 5px;
+          gap: 6px;
+          margin-top: 6px;
         }
         .tag {
-          background: black;
-          color: white;
-          padding: 2px 6px;
-          border-radius: 4px;
+          background: #0b5a21;
+          color: #fff;
+          padding: 4px 8px;
+          border-radius: 6px;
           display: flex;
           align-items: center;
-          gap: 5px;
+          gap: 6px;
           font-size: 12px;
         }
         .tag span {

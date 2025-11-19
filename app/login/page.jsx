@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Header from '../components/header/Header';
 import Footer from '../components/footer/Footer';
+import { signIn } from "next-auth/react";
 
 const green = '#0b5a21';
 const field = {
@@ -14,7 +15,7 @@ const field = {
 };
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,23 +24,31 @@ export default function LoginPage() {
 
   async function onSubmit(e) {
     e.preventDefault();
-    setMsg(null); setErr(null);
-    if (!username || !password) { setErr('Enter username and password'); return; }
+    setMsg(null);
+    setErr(null);
+
+    if (!email || !password) {
+      setErr('Enter email and password');
+      return;
+    }
 
     setLoading(true);
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+      const res = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
       });
-      if (res.ok) setMsg('Logged in');
-      else {
-        const data = await res.json().catch(() => ({}));
-        setErr(data?.message || 'Login failed');
+
+      if (res?.ok) {
+        setMsg('Logged in successfully!');
+        window.location.href = "/"; // redirect after login
+      } else {
+        setErr(res?.error || 'Invalid email or password');
       }
-    } catch {
-      setErr('Network error');
+    } catch (error) {
+      console.error(error);
+      setErr('Network or server error');
     } finally {
       setLoading(false);
     }
@@ -54,12 +63,12 @@ export default function LoginPage() {
 
           <form onSubmit={onSubmit} style={{ display: 'grid', gap: 14, textAlign: 'left' }}>
             <label>
-              <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>Username</div>
+              <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>Email</div>
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter Username"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter Email"
                 autoComplete="username"
                 required
                 style={field}
@@ -96,9 +105,7 @@ export default function LoginPage() {
             </label>
 
             <div style={{ textAlign: 'center', fontSize: 12, color: '#6b7280', marginTop: 6 }}>
-              <Link href="/forgotPassword" style={{ color: '#6b7280' }}>
-                Forgot Username or Password?
-              </Link>
+              <Link href="/forgotPassword" style={{ color: '#6b7280' }}>Forgot Email or Password?</Link>
               <div style={{ marginTop: 6 }}>
                 Don&apos;t have an account? <Link href="/signUp">Create One!</Link>
               </div>
