@@ -129,7 +129,7 @@
                   {userSelf?.interests && matchedStatistics && (
                     <div
                       key={"interests_" + userSelf.id}
-                      className="col-span-full border-b border-gray-300 p-4 rounded-lg shadow-sm bg-white text-center"
+                      className="col-span-full border-b border-gray-300 p-4 rounded-lg shadow-sm bg-neutral-100 text-center"
                     >
                       <h3 className="text-lg font-semibold text-black">{userSelf.username}</h3>
                       <h4 className="text-black">Filter by Common Interests</h4>
@@ -256,7 +256,7 @@
                     return (
                       <div
                         key={"user_" + user.id}
-                        className="border border-gray-300 p-4 rounded-lg shadow-sm bg-white w-full h-full flex flex-col"
+                        className="border border-gray-300 p-4 rounded-lg shadow-sm bg-neutral-200 w-full h-full flex flex-col"
                       >
                         <h3 className="text-md font-semibold text-black">
                           {user.username}
