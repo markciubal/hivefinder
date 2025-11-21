@@ -1,34 +1,41 @@
 'use client';
-
 import { useState } from 'react';
-import { api } from '../lib/api';
-import { saveToken } from '../lib/clientAuth';
+import { signIn } from 'next-auth/react';
 
-export default function LoginPage(){
-  const [username,setUsername] = useState('');
-  const [password,setPassword] = useState('');
-  const [loading,setLoading] = useState(false);
-  const [err,setErr] = useState('');
-  const [msg,setMsg] = useState('');
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+  const [msg, setMsg] = useState('');
 
-  async function onSubmit(e){
+  async function onSubmit(e) {
     e.preventDefault();
-    setErr(''); setMsg('');
-    if(!username || !password){ setErr('Enter username and password'); return; }
+    setErr('');
+    setMsg('');
+
+    if (!email || !password) {
+      setErr('Enter email and password');
+      return;
+    }
 
     setLoading(true);
-    try{
-      const data = await api('/api/auth/login', {
-        method: 'POST',
-        body: { username, password }
+    try {
+      const res = await signIn('credentials', {
+        redirect: false, // false to handle errors in UI
+        email,
+        password,
       });
-      // data = { token, user: { id, username, email } }
-      saveToken(data.token);
-      setMsg('Logged in');
-      setTimeout(()=>{ window.location.href = '/'; }, 800);
-    }catch(e){
-      setErr(e.message);
-    }finally{
+
+      if (res?.error) {
+        setErr(res.error);
+      } else {
+        setMsg('Logged in');
+        setTimeout(() => {
+          window.location.href = '/'; // redirect after login
+        }, 800);
+      }
+    } finally {
       setLoading(false);
     }
   }
@@ -39,12 +46,13 @@ export default function LoginPage(){
 
       <form onSubmit={onSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm mb-1">Username</label>
+          <label className="block text-sm mb-1">Email</label>
           <input
-            value={username}
-            onChange={e=>setUsername(e.target.value)}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded border px-3 py-2"
-            placeholder="Enter Username"
+            placeholder="Enter Email"
           />
         </div>
 
@@ -53,7 +61,7 @@ export default function LoginPage(){
           <input
             type="password"
             value={password}
-            onChange={e=>setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded border px-3 py-2"
             placeholder="••••••••"
           />
@@ -69,10 +77,6 @@ export default function LoginPage(){
         >
           {loading ? 'Logging in…' : 'Log In'}
         </button>
-
-        <div className="text-center text-sm mt-2">
-          <a href="/forgotPassword" className="underline">Forgot Username or Password?</a>
-        </div>
       </form>
     </main>
   );
