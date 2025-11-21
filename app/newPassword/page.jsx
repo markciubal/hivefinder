@@ -1,123 +1,81 @@
 'use client';
+
 import { useState } from 'react';
-import Link from 'next/link';
-import Header from '../components/header/Header';
-import Footer from '../components/footer/Footer';
+import { api } from '../lib/api';
 
-const green = '#0b5a21';
-const field = {
-  width: '100%',
-  padding: '10px 12px',
-  border: '1px solid #e5e7eb',
-  borderRadius: 6,
-  outline: 'none'
-};
+export default function NewPasswordPage(){
+  const [pw1,setPw1] = useState('');
+  const [pw2,setPw2] = useState('');
+  const [loading,setLoading] = useState(false);
+  const [err,setErr] = useState('');
+  const [msg,setMsg] = useState('');
 
-export default function NewPasswordPage() {
-  const [pw1, setPw1] = useState('');
-  const [pw2, setPw2] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState(null);
-  const [err, setErr] = useState(null);
-
-  async function onSubmit(e) {
+  async function onSubmit(e){
     e.preventDefault();
-    setMsg(null); setErr(null);
-    if (pw1.length < 8) { setErr('Min. 8 characters'); return; }
-    if (pw1 !== pw2) { setErr('Passwords do not match'); return; }
+    setErr(''); setMsg('');
+
+    if(pw1.length < 8){ setErr('Min. 8 characters'); return; }
+    if(pw1 !== pw2){ setErr('Passwords do not match'); return; }
+
+    const token = new URLSearchParams(window.location.search).get('token');
+    if(!token){ setErr('Missing reset token'); return; }
 
     setLoading(true);
-    try {
-      const res = await fetch('/api/reset-password', {
+    try{
+      await api('/api/auth/reset-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pw1 })
+        body: { token, password: pw1 }
       });
-      if (res.ok) setMsg('Password updated');
-      else {
-        const data = await res.json().catch(() => ({}));
-        setErr(data?.message || 'Request failed');
-      }
-    } catch {
-      setErr('Network error');
-    } finally {
+      setMsg('Password updated');
+      setTimeout(()=>{ window.location.href='/login'; }, 800);
+    }catch(e){
+      setErr(e.message);
+    }finally{
       setLoading(false);
     }
   }
 
   return (
-    <>
-      <Header />
-      <main>
-        <div style={{ maxWidth: 640, margin: '40px auto', padding: '0 16px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: 36, fontWeight: 800, margin: '10px 0 20px' }}>Enter New Password</h1>
+    <main className="max-w-2xl mx-auto px-4 py-12">
+      <h1 className="text-4xl font-bold text-center mb-10">Enter New Password</h1>
 
-          <form onSubmit={onSubmit} style={{ display: 'grid', gap: 14, textAlign: 'left' }}>
-            <label>
-              <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>Enter New Password</div>
-              <input
-                type="password"
-                value={pw1}
-                onChange={(e) => setPw1(e.target.value)}
-                placeholder="Min. 8 characters"
-                autoComplete="new-password"
-                required
-                style={field}
-              />
-            </label>
-
-            <label>
-              <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>Confirm Password</div>
-              <input
-                type="password"
-                value={pw2}
-                onChange={(e) => setPw2(e.target.value)}
-                placeholder="Min. 8 characters"
-                autoComplete="new-password"
-                required
-                style={field}
-              />
-            </label>
-
-            <Link
-              href="/login"
-              style={{
-                width: 320,
-                margin: '0 auto',
-                textAlign: 'center',
-                padding: '10px 16px',
-                color: '#6b7280',
-                border: '1px solid #e5e7eb',
-                borderRadius: 6
-              }}
-            >
-              Back to Sign In
-            </Link>
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                margin: '6px auto 0',
-                width: 320,
-                padding: '12px 16px',
-                background: green,
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              {loading ? 'Submitting…' : 'Submit'}
-            </button>
-
-            {msg && <p style={{ color: 'green', textAlign: 'center' }}>{msg}</p>}
-            {err && <p style={{ color: 'crimson', textAlign: 'center' }}>{err}</p>}
-          </form>
+      <form onSubmit={onSubmit} className="space-y-6">
+        <div>
+          <label className="block text-sm mb-1">Enter New Password</label>
+          <input
+            type="password"
+            value={pw1}
+            onChange={e=>setPw1(e.target.value)}
+            className="w-full rounded border px-3 py-2"
+            placeholder="Min. 8 characters"
+          />
         </div>
-      </main>
-      <Footer />
-    </>
+
+        <div>
+          <label className="block text-sm mb-1">Confirm Password</label>
+          <input
+            type="password"
+            value={pw2}
+            onChange={e=>setPw2(e.target.value)}
+            className="w-full rounded border px-3 py-2"
+            placeholder="Min. 8 characters"
+          />
+        </div>
+
+        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {msg && <p className="text-green-700 text-sm">{msg}</p>}
+
+        <div className="flex gap-3">
+          <a href="/login" className="flex-1 rounded border px-3 py-2 text-center">Back to Sign In</a>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 rounded bg-green-800 text-white py-2 font-semibold disabled:opacity-60"
+          >
+            {loading ? 'Submitting…' : 'Submit'}
+          </button>
+        </div>
+      </form>
+    </main>
   );
 }

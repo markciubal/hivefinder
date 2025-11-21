@@ -1,133 +1,79 @@
 'use client';
+
 import { useState } from 'react';
-import Link from 'next/link';
-import Header from '../components/header/Header';
-import Footer from '../components/footer/Footer';
+import { api } from '../lib/api';
+import { saveToken } from '../lib/clientAuth';
 
-const green = '#0b5a21';
-const field = {
-  width: '100%',
-  padding: '10px 12px',
-  border: '1px solid #e5e7eb',
-  borderRadius: 6,
-  outline: 'none'
-};
+export default function LoginPage(){
+  const [username,setUsername] = useState('');
+  const [password,setPassword] = useState('');
+  const [loading,setLoading] = useState(false);
+  const [err,setErr] = useState('');
+  const [msg,setMsg] = useState('');
 
-export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState(null);
-  const [err, setErr] = useState(null);
-
-  async function onSubmit(e) {
+  async function onSubmit(e){
     e.preventDefault();
-    setMsg(null); setErr(null);
-    if (!username || !password) { setErr('Enter username and password'); return; }
+    setErr(''); setMsg('');
+    if(!username || !password){ setErr('Enter username and password'); return; }
 
     setLoading(true);
-    try {
-      const res = await fetch('/api/login', {
+    try{
+      const data = await api('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: { username, password }
       });
-      if (res.ok) setMsg('Logged in');
-      else {
-        const data = await res.json().catch(() => ({}));
-        setErr(data?.message || 'Login failed');
-      }
-    } catch {
-      setErr('Network error');
-    } finally {
+      // data = { token, user: { id, username, email } }
+      saveToken(data.token);
+      setMsg('Logged in');
+      setTimeout(()=>{ window.location.href = '/'; }, 800);
+    }catch(e){
+      setErr(e.message);
+    }finally{
       setLoading(false);
     }
   }
 
   return (
-    <>
-      <Header />
-      <main>
-        <div style={{ maxWidth: 640, margin: '40px auto', padding: '0 16px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: 36, fontWeight: 800, margin: '10px 0 20px' }}>Log In</h1>
+    <main className="max-w-2xl mx-auto px-4 py-12">
+      <h1 className="text-4xl font-bold text-center mb-10">Log In</h1>
 
-          <form onSubmit={onSubmit} style={{ display: 'grid', gap: 14, textAlign: 'left' }}>
-            <label>
-              <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>Username</div>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter Username"
-                autoComplete="username"
-                required
-                style={field}
-              />
-            </label>
-
-            <label>
-              <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>Password</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                  type={showPw ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  required
-                  style={{ ...field, flex: 1 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw(!showPw)}
-                  style={{
-                    padding: '0 12px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: 6,
-                    background: '#fff',
-                    cursor: 'pointer'
-                  }}
-                  aria-label="Toggle password visibility"
-                >
-                  {showPw ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </label>
-
-            <div style={{ textAlign: 'center', fontSize: 12, color: '#6b7280', marginTop: 6 }}>
-              <Link href="/forgotPassword" style={{ color: '#6b7280' }}>
-                Forgot Username or Password?
-              </Link>
-              <div style={{ marginTop: 6 }}>
-                Don&apos;t have an account? <Link href="/signUp">Create One!</Link>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                margin: '6px auto 0',
-                width: 320,
-                padding: '12px 16px',
-                background: green,
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              {loading ? 'Signing in…' : 'Log In'}
-            </button>
-
-            {msg && <p style={{ color: 'green', textAlign: 'center' }}>{msg}</p>}
-            {err && <p style={{ color: 'crimson', textAlign: 'center' }}>{err}</p>}
-          </form>
+      <form onSubmit={onSubmit} className="space-y-6">
+        <div>
+          <label className="block text-sm mb-1">Username</label>
+          <input
+            value={username}
+            onChange={e=>setUsername(e.target.value)}
+            className="w-full rounded border px-3 py-2"
+            placeholder="Enter Username"
+          />
         </div>
-      </main>
-      <Footer />
-    </>
+
+        <div>
+          <label className="block text-sm mb-1">Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={e=>setPassword(e.target.value)}
+            className="w-full rounded border px-3 py-2"
+            placeholder="••••••••"
+          />
+        </div>
+
+        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {msg && <p className="text-green-700 text-sm">{msg}</p>}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded bg-green-800 text-white py-2 font-semibold disabled:opacity-60"
+        >
+          {loading ? 'Logging in…' : 'Log In'}
+        </button>
+
+        <div className="text-center text-sm mt-2">
+          <a href="/forgotPassword" className="underline">Forgot Username or Password?</a>
+        </div>
+      </form>
+    </main>
   );
 }
