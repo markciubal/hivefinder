@@ -1,0 +1,117 @@
+.manageclubscomp {
+  height: 1000px;
+  width: 1550px;
+  background-color: #ffffff;
+  align-items: center;
+  align-content: middle;
+}
+.hero-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 75px 24px;
+  gap: 32px;
+  background-color: #ffffff;
+}
+
+.text-content-title {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+
+.text-1 {
+  text-align: center;
+  vertical-align: top;
+  font-size: 72px;
+  font-family: Inter;
+  letter-spacing: -3%;
+  line-height: 120.00000476837158%;
+  color: #2c2c2c;
+}
+
+.text-2 {
+  text-align: center;
+  vertical-align: middle;
+  font-size: 32px;
+  font-family: Inter;
+  line-height: 120.00000476837158%;
+  color: #2c2c2c;
+}
+
+.table {
+  width: 80%;
+  margin: 20px auto;
+  padding: 12px 20px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  padding: 12px 0;
+  align-items: center;
+  
+}
+
+.table-header {
+  background: #eee;
+  font-weight: 700;
+}
+
+
+.icon-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;       
+}
+
+.icon-group img {
+  width: 20px;     
+  height: 20px;    
+  object-fit: contain;
+  cursor: pointer;
+}
+
+
+.icon-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.edit-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+
+.delete-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+
+.view-btn {
+  background: #0b611f;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: none;
+}
+
+.section-title {
+  width: 80%;
+  margin: 60px auto 10px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+
