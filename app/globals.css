@@ -36,6 +36,8 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Additional global styles can be added here */
 /* ===== Base Layout ===== */
 .hero-form {
   display: flex;
