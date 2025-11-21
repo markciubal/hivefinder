@@ -15,7 +15,7 @@ export default function Page() {
           </div>
         </div>
 
-        {/* ---------- Edit Your Clubs ---------- */}
+        {/* ---------- Edit Your Clubs ------------- */
         <p className="section-title">Edit your Clubs:</p>
 
         <div className="table">
