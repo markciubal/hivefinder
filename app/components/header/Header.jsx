@@ -213,7 +213,7 @@ export default function Header() {
                       </svg>
                     </div>
                     <div className="flex-auto">
-                      <Link href="/signup" className="block font-semibold text-black">
+                      <Link href="/signUp" className="block font-semibold text-black">
                         Sign Up
                         <span className="absolute inset-0" />
                       </Link>
@@ -231,7 +231,7 @@ export default function Header() {
           <Link href="/login" className="text-sm/6 font-semibold text-black">
             Log in <span aria-hidden="true">→</span>
           </Link>
-          <Link href="/signup" className="text-sm/6 font-semibold text-black">
+          <Link href="/signUp" className="text-sm/6 font-semibold text-black">
             Sign up
           </Link>
         </div>

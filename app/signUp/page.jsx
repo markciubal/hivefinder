@@ -32,10 +32,12 @@ export default function SignUpPage() {
 
     setLoading(true);
     try {
-      await api('/api/auth/register', {
-        method: 'POST',
-        body: { username, email, password }
-      });
+  await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password }),
+  });
+
       setMsg('Account created');
       setTimeout(() => { window.location.href = '/login'; }, 800);
     } catch (err) {
