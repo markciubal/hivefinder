@@ -126,7 +126,7 @@ export default function Header() {
                       </svg>
                     </div>
                     <div className="flex-auto">
-                      <a href="#" className="block font-semibold text-black">
+                      <a href="/account" className="block font-semibold text-black">
                         My Account
                         <span className="absolute inset-0" />
                       </a>
@@ -164,6 +164,62 @@ export default function Header() {
                       </p>
                     </div>
                   </div>
+                  {/* Item */}
+                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-white/5">
+                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50 group-hover:bg-gray-700">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                        className="size-6 text-gray-400 group-hover:text-black"
+                      >
+                        <path
+                          d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-auto">
+                      <a href="/login" className="block font-semibold text-black">
+                        Log In
+                        <span className="absolute inset-0" />
+                      </a>
+                      <p className="mt-1 text-gray-400">
+                        Speak directly to your customers
+                      </p>
+                    </div>
+                  </div>
+                  {/* Item */}
+                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-white/5">
+                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50 group-hover:bg-gray-700">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                        className="size-6 text-gray-400 group-hover:text-black"
+                      >
+                        <path
+                          d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-auto">
+                      <a href="/account" className="block font-semibold text-black">
+                        Sign Up
+                        <span className="absolute inset-0" />
+                      </a>
+                      <p className="mt-1 text-gray-400">
+                        Speak directly to your customers
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -171,7 +227,7 @@ export default function Header() {
         </div>
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <a href="#" className="text-sm/6 font-semibold text-black">
+          <a href="/login" className="text-sm/6 font-semibold text-black">
             Log in <span aria-hidden="true">→</span>
           </a>
         </div>
@@ -274,7 +330,7 @@ export default function Header() {
                       aria-label="Account"
                     >
                       <a
-                        href="#"
+                        href="/account"
                         className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
                       >
                         My Account

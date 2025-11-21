@@ -23,7 +23,7 @@ Developed for:
 Section 4 - 82526
 
 **Team HiveFinders (Group 11):**
-- Annyus Chandler - Backend Developer  
+- Annyus Chandler - Frontend Developer  
 - Mark Ciubal - Frontend Developer  
 - Angus Husted - Backend Developer / SCRUM Master  
 - Saliman Noori - Backend Developer  
