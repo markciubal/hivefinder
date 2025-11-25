@@ -259,20 +259,23 @@ export default function BrowseClubs() {
                 <div className="p-5 border border-gray-200 bg-neutral-900/90 rounded-b-xl text-left">
                   {/* Categories & fields */}
                   <div className="mb-2">
-                    {(club.categories || []).map((category) => (
-                      <span
-                        key={category}
-                        className="inline-block px-2 py-1 my-1 mr-1 text-xxs font-semibold text-gray-800 bg-gray-200 rounded-full"
-                      >
-                        {category}
-                      </span>
-                    ))}
+                  <p className="text-xs font-semibold text-gray-300 mb-1">Fields of Study:</p>
                     {(club.fieldsOfStudy || []).map((field) => (
                       <span
                         key={field}
                         className="inline-block px-2 py-1 my-1 mr-1 text-xxs font-semibold text-gray-800 bg-[#f4c201] rounded-full"
                       >
                         {field}
+                      </span>
+                    ))}
+                    <br/>
+                    <p className="text-xs font-semibold text-gray-300 mb-1">Categories:</p>
+                    {(club.categories || []).map((category) => (
+                      <span
+                        key={category}
+                        className="inline-block px-2 py-1 my-1 mr-1 text-xxs font-semibold text-gray-800 bg-gray-200 rounded-full"
+                      >
+                        {category}
                       </span>
                     ))}
                   </div>
