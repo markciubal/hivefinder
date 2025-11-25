@@ -119,10 +119,11 @@
     return (
       <>
         <Header />
-        <div className="">
+        <div className="p-3">
           <div className=" text-center">
-          <p className="text-2 font-bold">Find Your Hive</p>
-            {/* Card grid: self + matches */}
+          <h1 className="text-lg py-3 font-semibold text-black uppercase">
+            Find Friends
+          </h1>            {/* Card grid: self + matches */}
             <div className="w-full flex justify-center">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-5xl justify-center">
                 <div className="text-center col-span-full">
@@ -132,8 +133,9 @@
                       className="col-span-full border-b border-gray-300 p-4 rounded-lg shadow-sm bg-neutral-100 text-center"
                     >
                       <h3 className="text-lg font-semibold text-black">{userSelf.username}</h3>
-                      <h4 className="text-black">Filter by Common Interests</h4>
-
+                    <h2 className="text-sm font-semibold text-black m-2">
+                            Filter by Common Interests
+                    </h2>
                       {userSelf.interests.map((interest, index) => {
                         const isShared = matchedStatistics.interests.some(
                           (i) => i.name === interest
@@ -170,8 +172,9 @@
 
                       {userSelf?.memberships && (
                         <div key={"clubs_" + userSelf.id}>
-                          <h4>Filter by Common Memberships</h4>
-                          {userSelf.memberships.map((membership, index) => {
+                            <h2 className="text-sm font-semibold text-black m-2">
+                                    Filter by Common Memberships
+                            </h2>                          {userSelf.memberships.map((membership, index) => {
                             console.log(matchedStatistics);
                             const isShared = userSelf.memberships?.some(
                               (sc) => sc.club === membership.club
@@ -256,7 +259,7 @@
                     return (
                       <div
                         key={"user_" + user.id}
-                        className="border border-gray-300 p-4 rounded-lg shadow-sm bg-neutral-200 w-full h-full flex flex-col"
+                        className="border border-gray-300 p-4 rounded-lg shadow-sm bg-neutral-100 w-full h-full flex flex-col"
                       >
                         <h3 className="text-md font-semibold text-black">
                           {user.username}
