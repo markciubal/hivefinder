@@ -1,13 +1,39 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopProductOpen, setDesktopProductOpen] = useState(false);
   const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
+
+  const [currentUser, setCurrentUser] = useState(null);
+
   const productBtnRef = useRef(null);
+  const router = useRouter();
+
+  // Read localStorage user on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const u = localStorage.getItem("user");
+        if (u) setCurrentUser(JSON.parse(u));
+      } catch (e) {
+        console.error("Error parsing user:", e);
+      }
+    }
+  }, []);
+
+  const handleSignOut = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+    }
+    setCurrentUser(null);
+    router.push("/");
+  };
 
   return (
     <header className="bg-white">
@@ -71,7 +97,9 @@ export default function Header() {
                 setTimeout(() => {
                   if (
                     !e.currentTarget.contains(document.activeElement) &&
-                    !document.getElementById("desktop-menu-account")?.contains(document.activeElement)
+                    !document
+                      .getElementById("desktop-menu-account")
+                      ?.contains(document.activeElement)
                   ) {
                     setDesktopProductOpen(false);
                   }
@@ -162,64 +190,84 @@ export default function Header() {
                     </div>
                   </div>
 
-                  {/* Log In */}
-                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                        className="size-6 text-gray-600"
-                      >
-                        <path
-                          d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-9A2.25 2.25 0 0 0 2.25 5.25v13.5A2.25 2.25 0 0 0 4.5 21h9a2.25 2.25 0 0 0 2.25-2.25V15"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M18 12H7.5m0 0 3-3m-3 3 3 3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-auto">
-                      <Link href="/login" className="block font-semibold text-black">
-                        Log In
-                        <span className="absolute inset-0" />
-                      </Link>
-                      <p className="mt-1 text-gray-500">Access your account</p>
-                    </div>
-                  </div>
+                  {/* IF LOGGED OUT → show Login/Signup cards */}
+                  {!currentUser && (
+                    <>
+                      {/* Log In */}
+                      <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
+                        <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            aria-hidden="true"
+                            className="size-6 text-gray-600"
+                          >
+                            <path
+                              d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-9A2.25 2.25 0 0 0 2.25 5.25v13.5A2.25 2.25 0 0 0 4.5 21h9a2.25 2.25 0 0 0 2.25-2.25V15"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M18 12H7.5m0 0 3-3m-3 3 3 3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-auto">
+                          <Link href="/login" className="block font-semibold text-black">
+                            Log In
+                            <span className="absolute inset-0" />
+                          </Link>
+                          <p className="mt-1 text-gray-500">Access your account</p>
+                        </div>
+                      </div>
 
-                  {/* Sign Up */}
-                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                        className="size-6 text-gray-600"
+                      {/* Sign Up */}
+                      <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
+                        <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            aria-hidden="true"
+                            className="size-6 text-gray-600"
+                          >
+                            <path
+                              d="M12 6v12M6 12h12"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-auto">
+                          <Link href="/signUp" className="block font-semibold text-black">
+                            Sign Up
+                            <span className="absolute inset-0" />
+                          </Link>
+                          <p className="mt-1 text-gray-500">Create your account</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* IF LOGGED IN → show greeting + sign out */}
+                  {currentUser && (
+                    <div className="p-4">
+                      <p className="text-sm font-semibold text-black mb-2">
+                        Hi {currentUser.username}!
+                      </p>
+                      <button
+                        onClick={handleSignOut}
+                        className="text-sm text-red-600 font-semibold"
                       >
-                        <path
-                          d="M12 6v12M6 12h12"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                        Sign out
+                      </button>
                     </div>
-                    <div className="flex-auto">
-                      <Link href="/signUp" className="block font-semibold text-black">
-                        Sign Up
-                        <span className="absolute inset-0" />
-                      </Link>
-                      <p className="mt-1 text-gray-500">Create your account</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -228,12 +276,28 @@ export default function Header() {
 
         {/* Right side auth links */}
         <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-4">
-          <Link href="/login" className="text-sm/6 font-semibold text-black">
-            Log in <span aria-hidden="true">→</span>
-          </Link>
-          <Link href="/signUp" className="text-sm/6 font-semibold text-black">
-            Sign up
-          </Link>
+          {currentUser ? (
+            <>
+              <span className="text-sm/6 font-semibold text-black">
+                Hi {currentUser.username}!
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="text-sm/6 font-semibold text-black"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="text-sm/6 font-semibold text-black">
+                Log in <span aria-hidden="true">→</span>
+              </Link>
+              <Link href="/signUp" className="text-sm/6 font-semibold text-black">
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -340,18 +404,35 @@ export default function Header() {
                         >
                           Club Administration
                         </Link>
-                        <Link
-                          href="/login"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
-                        >
-                          Log in
-                        </Link>
-                        <Link
-                          href="/signup"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
-                        >
-                          Sign up
-                        </Link>
+
+                        {!currentUser ? (
+                          <>
+                            <Link
+                              href="/login"
+                              className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                            >
+                              Log in
+                            </Link>
+                            <Link
+                              href="/signUp"
+                              className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                            >
+                              Sign up
+                            </Link>
+                          </>
+                        ) : (
+                          <>
+                            <div className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black">
+                              Hi {currentUser.username}!
+                            </div>
+                            <button
+                              onClick={handleSignOut}
+                              className="block w-full text-left rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                            >
+                              Sign out
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>

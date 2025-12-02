@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -8,6 +8,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
+  const router = useRouter();
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -21,20 +22,34 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const res = await signIn('credentials', {
-        redirect: false, // false to handle errors in UI
-        email,
-        password,
+      // Call your backend login route
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,      // 🔥 FIXED — backend now receives { email, password }
+          password,
+        }),
       });
 
-      if (res?.error) {
-        setErr(res.error);
-      } else {
-        setMsg('Logged in');
-        setTimeout(() => {
-          window.location.href = '/'; // redirect after login
-        }, 800);
+      const data = await res.json();
+      if (!res.ok) {
+        setErr(data.error || 'Login failed');
+        return;
       }
+
+      // Save user + token persistently
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      setMsg('Logged in');
+
+      // Redirect after short delay
+      setTimeout(() => {
+        router.push('/');
+      }, 800);
+    } catch (err) {
+      setErr('Something went wrong');
     } finally {
       setLoading(false);
     }
