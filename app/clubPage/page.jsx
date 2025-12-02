@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Header from "../components/header/Header";
-import clubs_enriched from '../../utilities/clubs.json';
+// import clubs_enriched from '../../utilities/clubs.json';
 
 // Reuse styling patterns from interests/membership page.jsx
 const sharedStyle =
@@ -15,15 +15,37 @@ const starStyle =
   "w-3 h-3 mx-0 shrink-0 text-yellow-400 transition peer-checked:scale-130 peer-checked:rotate-360 peer-checked:fill-yellow-400 peer-checked:stroke-yellow-400 fill-transparent stroke-gray-300 stroke-[3] cursor-pointer";
 
 export default function BrowseClubs() {
+  const [clubs, setClubs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedFields, setSelectedFields] = useState([]);
   const [sortBy, setSortBy] = useState("points_desc"); // points_desc | name_asc | name_desc
 
+  // Fetch clubs from API
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/clubs");
+        if (!res.ok) throw new Error("Failed to load clubs");
+        const data = await res.json();
+        setClubs(data);
+      } catch (err) {
+        console.error(err);
+        setLoadError("Could not load clubs.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
   // Build unique categories + counts
   const categoryStats = useMemo(() => {
     const map = new Map();
-    clubs_enriched.forEach((club) => {
+    clubs.forEach((club) => {
       (club.categories || []).forEach((cat) => {
         map.set(cat, (map.get(cat) || 0) + 1);
       });
@@ -31,12 +53,12 @@ export default function BrowseClubs() {
     return Array.from(map.entries())
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, []);
+  }, [clubs]);
 
   // Build unique fieldsOfStudy + counts
   const fieldStats = useMemo(() => {
     const map = new Map();
-    clubs_enriched.forEach((club) => {
+    clubs.forEach((club) => {
       (club.fieldsOfStudy || []).forEach((field) => {
         map.set(field, (map.get(field) || 0) + 1);
       });
@@ -44,7 +66,7 @@ export default function BrowseClubs() {
     return Array.from(map.entries())
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, []);
+  }, [clubs]);
 
   // Toggle helpers
   const toggleCategory = (value) => {
@@ -61,7 +83,7 @@ export default function BrowseClubs() {
 
   // Derived filtered + sorted clubs
   const filteredClubs = useMemo(() => {
-    let result = [...clubs_enriched];
+    let result = [...clubs];
 
     // Search filter
     if (searchTerm.trim() !== "") {
@@ -105,7 +127,7 @@ export default function BrowseClubs() {
     });
 
     return result;
-  }, [searchTerm, selectedCategories, selectedFields, sortBy]);
+  }, [clubs, searchTerm, selectedCategories, selectedFields, sortBy]);
 
   const content = (
     <div className="w-full flex justify-center p-3">
@@ -114,6 +136,14 @@ export default function BrowseClubs() {
         <h1 className="text-lg py-3 font-semibold text-black uppercase">
           Browse Clubs
         </h1>
+
+        {/* Optional tiny status text (doesn't change layout aesthetics) */}
+        {loading && (
+          <p className="text-xs text-gray-500 mb-2">Loading clubs…</p>
+        )}
+        {loadError && !loading && (
+          <p className="text-xs text-red-600 mb-2">{loadError}</p>
+        )}
 
         {/* Filter + sort panel styled like interests page */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -259,7 +289,9 @@ export default function BrowseClubs() {
                 <div className="p-5 border border-gray-200 bg-neutral-900/90 rounded-b-xl text-left">
                   {/* Categories & fields */}
                   <div className="mb-2">
-                  <p className="text-xs font-semibold text-gray-300 mb-1">Fields of Study:</p>
+                    <p className="text-xs font-semibold text-gray-300 mb-1">
+                      Fields of Study:
+                    </p>
                     {(club.fieldsOfStudy || []).map((field) => (
                       <span
                         key={field}
@@ -268,8 +300,10 @@ export default function BrowseClubs() {
                         {field}
                       </span>
                     ))}
-                    <br/>
-                    <p className="text-xs font-semibold text-gray-300 mb-1">Categories:</p>
+                    <br />
+                    <p className="text-xs font-semibold text-gray-300 mb-1">
+                      Categories:
+                    </p>
                     {(club.categories || []).map((category) => (
                       <span
                         key={category}

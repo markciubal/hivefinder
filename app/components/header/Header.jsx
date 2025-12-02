@@ -93,18 +93,22 @@ export default function Header() {
               aria-haspopup="menu"
               aria-expanded={desktopProductOpen}
               onClick={() => setDesktopProductOpen((s) => !s)}
-              onBlur={(e) => {
-                setTimeout(() => {
-                  if (
-                    !e.currentTarget.contains(document.activeElement) &&
-                    !document
-                      .getElementById("desktop-menu-account")
-                      ?.contains(document.activeElement)
-                  ) {
-                    setDesktopProductOpen(false);
-                  }
-                }, 0);
-              }}
+              onBlur={() => {
+              setTimeout(() => {
+                const btn = productBtnRef.current;
+                const menu = document.getElementById("desktop-menu-account");
+                const active = document.activeElement;
+
+                if (
+                  btn &&
+                  !btn.contains(active) &&
+                  !menu?.contains(active)
+                ) {
+                  setDesktopProductOpen(false);
+                }
+              }, 0);
+            }}
+
               className="flex items-center gap-x-1 text-sm/6 font-semibold text-black"
             >
               Account
@@ -155,7 +159,19 @@ export default function Header() {
                       </svg>
                     </div>
                     <div className="flex-auto">
-                      <Link href="/account" className="block font-semibold text-black">
+                      {/* 🔑 gate My Account based on localStorage at click-time */}
+                      <Link
+                        href="/account"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (typeof window !== "undefined" && localStorage.getItem("user")) {
+                            router.push("/account");
+                          } else {
+                            router.push("/login");
+                          }
+                        }}
+                        className="block font-semibold text-black"
+                      >
                         My Account
                         <span className="absolute inset-0" />
                       </Link>
@@ -226,7 +242,7 @@ export default function Header() {
                       </div>
 
                       {/* Sign Up */}
-                      <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
+                      <div className="group relative flex.items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
                         <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
                           <svg
                             viewBox="0 0 24 24"
@@ -248,7 +264,7 @@ export default function Header() {
                             Sign Up
                             <span className="absolute inset-0" />
                           </Link>
-                          <p className="mt-1 text-gray-500">Create your account</p>
+                          <p className="mt-1 text-gray-500">Create your.account</p>
                         </div>
                       </div>
                     </>
@@ -339,7 +355,7 @@ export default function Header() {
             </div>
 
             <div className="mt-6 flow-root">
-              <div className="-my-6 divide-y divide-white/10">
+              <div className="-my-6.divide-y divide-white/10">
                 <div className="space-y-2 py-6">
                   <Link
                     href="/"
@@ -366,7 +382,7 @@ export default function Header() {
                       aria-controls="mobile-account"
                       aria-expanded={mobileProductsOpen}
                       onClick={() => setMobileProductsOpen((s) => !s)}
-                      className="flex w-full items-center justify-between rounded-lg py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg-white/5"
+                      className="flex w-full items-center justify-between rounded-lg.py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg-white/5"
                     >
                       Account
                       <svg
@@ -392,15 +408,24 @@ export default function Header() {
                         role="group"
                         aria-label="Account"
                       >
+                        {/* 🔑 Mobile My Account gate */}
                         <Link
                           href="/account"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (typeof window !== "undefined" && localStorage.getItem("user")) {
+                              router.push("/account");
+                            } else {
+                              router.push("/login");
+                            }
+                          }}
                           className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
                         >
                           My Account
                         </Link>
                         <Link
                           href="/clubAdmin"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                          className="block rounded-lg.py-2 pr-3 pl-6 text-sm.font-semibold text-black hover:bg-white/5"
                         >
                           Club Administration
                         </Link>
