@@ -22,12 +22,15 @@ model User {
   lastName  String?
   about     String?
 
-  // 👇 NEW – simple array of interest names for now
+  //simple array of interest names for now
   interests String[] @default([])
 
   resetToken    String?
   resetExpires  DateTime?
   resetLastSent DateTime?
+
+  // role with default MEMBER
+  role Role @default(MEMBER)
 
   // Back-relations
   memberships Member[]       // clubs they belong to
@@ -42,13 +45,13 @@ model Club {
   name        String
   description String?
 
-  // 👇 NEW – to match your clubs.json structure
+  // match our clubs.json structure
   categories    String[]
   fieldsOfStudy String[]
   points        Int?
   clubUrl       String?
 
-  members     Member[]       // users who belong to this club
+  members     Member[]        // users who belong to this club
   moderators  ClubModerator[] // moderators
   createdAt   DateTime        @default(now())
 }

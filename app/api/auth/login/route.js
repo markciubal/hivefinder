@@ -13,8 +13,18 @@ export async function POST(req) {
     );
   }
 
-  // Look up by email instead of username
-  const user = await prisma.user.findFirst({ where: { email } });
+  // Include role in the selected fields
+  const user = await prisma.user.findFirst({
+    where: { email },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      password: true,
+      //role: true,
+    },
+  });
+
   if (!user) {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   }
@@ -24,14 +34,21 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   }
 
+  // Include role in the JWT payload too
   const token = jwt.sign(
-    { id: user.id, username: user.username, email: user.email },
+    { id: user.id, username: user.username, email: user.email, role: user.role },
     process.env.NEXTAUTH_SECRET,
     { expiresIn: '7d' }
   );
 
+  // And in the returned user object
   return NextResponse.json({
     token,
-    user: { id: user.id, username: user.username, email: user.email },
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    },
   });
 }
