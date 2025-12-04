@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import interestsList from '../../utilities/interests.json';
-
+import Header from '../components/header/Header.jsx';
 export default function AccountPage() {
   const [username, setUsername] = useState('');
   const [firstName, setFirst] = useState('');
@@ -127,175 +127,178 @@ export default function AccountPage() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold text-center mb-8">
-        Edit Account Details
-      </h1>
+    <>
+      <Header />
+      <main className="max-w-4xl mx-auto px-4 py-10">
+        <h1 className="text-3xl font-bold text-center mb-8">
+          Edit Account Details
+        </h1>
 
-      {initialLoading ? (
-        <p className="text-center text-sm text-gray-600">Loading your profile…</p>
-      ) : (
-        <form onSubmit={onSubmit} className="space-y-6">
-          {/* Account summary card */}
-          <section className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-            <h2 className="text-lg font-semibold text-black mb-3">
-              Basic Information
-            </h2>
+        {initialLoading ? (
+          <p className="text-center text-sm text-gray-600">Loading your profile…</p>
+        ) : (
+          <form onSubmit={onSubmit} className="space-y-6">
+            {/* Account summary card */}
+            <section className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+              <h2 className="text-lg font-semibold text-black mb-3">
+                Basic Information
+              </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Username (read-only) */}
-              <div>
-                <label className="block text-sm mb-1 text-gray-700">
-                  Username
-                </label>
-                <input
-                  className="w-full rounded border px-3 py-2 bg-gray-100 text-gray-700"
-                  value={username}
-                  readOnly
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Username is currently not editable.
-                </p>
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Username (read-only) */}
+                <div>
+                  <label className="block text-sm mb-1 text-gray-700">
+                    Username
+                  </label>
+                  <input
+                    className="w-full rounded border px-3 py-2 bg-gray-100 text-gray-700"
+                    value={username}
+                    readOnly
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Username is currently not editable.
+                  </p>
+                </div>
 
-              {/* Email */}
-              <div>
-                <label className="block text-sm mb-1 text-gray-700">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  className="w-full rounded border px-3 py-2"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                />
-              </div>
+                {/* Email */}
+                <div>
+                  <label className="block text-sm mb-1 text-gray-700">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    className="w-full rounded border px-3 py-2"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                  />
+                </div>
 
-              {/* First name */}
-              <div>
-                <label className="block text-sm mb-1 text-gray-700">
-                  First Name
-                </label>
-                <input
-                  className="w-full rounded border px-3 py-2"
-                  value={firstName}
-                  onChange={e => setFirst(e.target.value)}
-                />
-              </div>
+                {/* First name */}
+                <div>
+                  <label className="block text-sm mb-1 text-gray-700">
+                    First Name
+                  </label>
+                  <input
+                    className="w-full rounded border px-3 py-2"
+                    value={firstName}
+                    onChange={e => setFirst(e.target.value)}
+                  />
+                </div>
 
-              {/* Last name */}
-              <div>
-                <label className="block text-sm mb-1 text-gray-700">
-                  Last Name
-                </label>
-                <input
-                  className="w-full rounded border px-3 py-2"
-                  value={lastName}
-                  onChange={e => setLast(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* About */}
-            <div className="mt-4">
-              <label className="block text-sm mb-1 text-gray-700">
-                About Me
-              </label>
-              <textarea
-                className="w-full rounded border px-3 py-2 min-h-[80px]"
-                value={about}
-                onChange={e => setAbout(e.target.value)}
-              />
-            </div>
-          </section>
-
-          {/* Interests section */}
-          <section className="border border-gray-200 rounded-lg p-4 bg-neutral-100 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-black">
-                  Interests
-                </h2>
-                <p className="text-xs text-gray-600">
-                  These are used in Friend Finder to match you with other students.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setInterestsOpen((open) => !open)}
-                className="rounded bg-green-800 text-white px-3 py-1 text-sm font-semibold hover:bg-green-700"
-              >
-                {interestsOpen ? 'Close' : 'Add / Edit'}
-              </button>
-            </div>
-
-            {/* Selected interests pills */}
-            {selectedInterests.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {selectedInterests.map((interest) => (
-                  <span
-                    key={interest}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-800 text-white"
-                  >
-                    {interest}
-                    <button
-                      type="button"
-                      onClick={() => removeInterest(interest)}
-                      className="ml-1 text-white/80 hover:text-white"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Expandable interest "dropdown" that stretches width */}
-            {interestsOpen && (
-              <div className="mt-4 border-t border-gray-300 pt-3">
-                <p className="text-xs text-gray-600 mb-2">
-                  Click to add or remove interests:
-                </p>
-                <div className="max-h-64 overflow-y-auto w-full rounded-lg bg-white border border-gray-200 p-3">
-                  <div className="flex flex-wrap gap-2">
-                    {interestsList.map((interest) => {
-                      const isSelected = selectedInterests.includes(interest);
-                      return (
-                        <button
-                          key={interest}
-                          type="button"
-                          onClick={() => toggleInterest(interest)}
-                          className={
-                            "px-3 py-1 rounded-full text-xs border transition " +
-                            (isSelected
-                              ? "bg-green-800 text-white border-green-800"
-                              : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100")
-                          }
-                        >
-                          {interest}
-                        </button>
-                      );
-                    })}
-                  </div>
+                {/* Last name */}
+                <div>
+                  <label className="block text-sm mb-1 text-gray-700">
+                    Last Name
+                  </label>
+                  <input
+                    className="w-full rounded border px-3 py-2"
+                    value={lastName}
+                    onChange={e => setLast(e.target.value)}
+                  />
                 </div>
               </div>
-            )}
-          </section>
 
-          {err && <p className="text-red-600 text-sm">{err}</p>}
-          {msg && <p className="text-green-700 text-sm">{msg}</p>}
+              {/* About */}
+              <div className="mt-4">
+                <label className="block text-sm mb-1 text-gray-700">
+                  About Me
+                </label>
+                <textarea
+                  className="w-full rounded border px-3 py-2 min-h-[80px]"
+                  value={about}
+                  onChange={e => setAbout(e.target.value)}
+                />
+              </div>
+            </section>
 
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded bg-green-800 text-white px-5 py-2 font-semibold disabled:opacity-60"
-            >
-              {loading ? 'Saving…' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      )}
-    </main>
+            {/* Interests section */}
+            <section className="border border-gray-200 rounded-lg p-4 bg-neutral-100 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-black">
+                    Interests
+                  </h2>
+                  <p className="text-xs text-gray-600">
+                    These are used in Friend Finder to match you with other students.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setInterestsOpen((open) => !open)}
+                  className="rounded bg-green-800 text-white px-3 py-1 text-sm font-semibold hover:bg-green-700"
+                >
+                  {interestsOpen ? 'Close' : 'Add / Edit'}
+                </button>
+              </div>
+
+              {/* Selected interests pills */}
+              {selectedInterests.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectedInterests.map((interest) => (
+                    <span
+                      key={interest}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-800 text-white"
+                    >
+                      {interest}
+                      <button
+                        type="button"
+                        onClick={() => removeInterest(interest)}
+                        className="ml-1 text-white/80 hover:text-white"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Expandable interest "dropdown" that stretches width */}
+              {interestsOpen && (
+                <div className="mt-4 border-t border-gray-300 pt-3">
+                  <p className="text-xs text-gray-600 mb-2">
+                    Click to add or remove interests:
+                  </p>
+                  <div className="max-h-64 overflow-y-auto w-full rounded-lg bg-white border border-gray-200 p-3">
+                    <div className="flex flex-wrap gap-2">
+                      {interestsList.map((interest) => {
+                        const isSelected = selectedInterests.includes(interest);
+                        return (
+                          <button
+                            key={interest}
+                            type="button"
+                            onClick={() => toggleInterest(interest)}
+                            className={
+                              "px-3 py-1 rounded-full text-xs border transition " +
+                              (isSelected
+                                ? "bg-green-800 text-white border-green-800"
+                                : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100")
+                            }
+                          >
+                            {interest}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {err && <p className="text-red-600 text-sm">{err}</p>}
+            {msg && <p className="text-green-700 text-sm">{msg}</p>}
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded bg-green-800 text-white px-5 py-2 font-semibold disabled:opacity-60"
+              >
+                {loading ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        )}
+      </main>
+    </>
   );
 }
