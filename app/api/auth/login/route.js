@@ -21,7 +21,7 @@ export async function POST(req) {
       username: true,
       email: true,
       password: true,
-      role: true,
+      //role: true,
     },
   });
 

@@ -12,6 +12,7 @@ export default function ClubAdminPage() {
   const [loadingClubs, setLoadingClubs] = useState(true);
   const [error, setError] = useState(null);
   const [clubs, setClubs] = useState([]);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -20,10 +21,9 @@ export default function ClubAdminPage() {
 
     const init = async () => {
       try {
-        // ✅ LOGIN CHECK: same as Header → just "user"
+        // LOGIN CHECK: same as "user" in localStorage
         const rawUser = localStorage.getItem("user");
 
-        // Not logged in → go to login
         if (!rawUser) {
           router.replace("/login");
           return;
@@ -38,12 +38,10 @@ export default function ClubAdminPage() {
           return;
         }
 
-        // ✅ SUPERUSER CHECK:
-        // Prefer user.role if you've wired it, otherwise fall back to email
+        // SUPERUSER CHECK (role if present, else email)
         const isSuperuser =
           user?.role === "SUPERUSER" || user?.email === SUPERUSER_EMAIL;
 
-        // Logged in but not superuser → send them home
         if (!isSuperuser) {
           router.replace("/");
           return;
@@ -53,7 +51,7 @@ export default function ClubAdminPage() {
         setLoadingClubs(true);
         setError(null);
 
-        // ✅ REAL BACKEND DATA: use your existing /api/clubs endpoint
+        //REAL BACKEND CLUBS
         const res = await fetch("/api/clubs", {
           method: "GET",
           signal: controller.signal,
@@ -80,8 +78,53 @@ export default function ClubAdminPage() {
     return () => controller.abort();
   }, [router]);
 
-  // While deciding auth / redirecting, render nothing so it doesn't flash
+  // 🔨 Delete handler that calls DELETE /api/clubs/[id]
+  const handleDeleteClub = async (club) => {
+    const sure = window.confirm(
+      `Delete club "${club.name}"?\n\nThis will permanently remove it once confirmed.`
+    );
+    if (!sure) return;
+
+    if (typeof window === "undefined") return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Missing auth token. Please log in again.");
+      return;
+    }
+
+    try {
+      setDeletingId(club.id);
+
+      const res = await fetch(`/api/clubs/${club.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        alert("Your admin session expired or you are not a superuser.");
+        return;
+      }
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Failed to delete club (status ${res.status})`);
+      }
+
+      // ✅ Remove from local state so UI updates immediately
+      setClubs((prev) => prev.filter((c) => c.id !== club.id));
+    } catch (err) {
+      console.error("Error deleting club:", err);
+      alert(`Error deleting club: ${err.message || "Unknown error"}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (checkingAuth) {
+    // No flash while deciding auth/redirect
     return null;
   }
 
@@ -103,24 +146,6 @@ export default function ClubAdminPage() {
             <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
               SUPERUSER ONLY
             </span>
-          </div>
-
-          {/* Create club placeholder */}
-          <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4">
-            <h2 className="mb-1 text-sm font-semibold text-gray-800">
-              Create new club
-            </h2>
-            <p className="mb-3 text-xs text-gray-600">
-              Club creation form coming soon. For now this is just a disabled
-              placeholder.
-            </p>
-            <button
-              type="button"
-              disabled
-              className="cursor-not-allowed rounded-md bg-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700"
-            >
-              + Create club
-            </button>
           </div>
 
           {/* Loading / error states */}
@@ -150,7 +175,7 @@ export default function ClubAdminPage() {
                 <tbody className="divide-y divide-gray-100">
                   {clubs.map((club) => (
                     <tr key={club.id} className="hover:bg-gray-50">
-                      <td className="px-3 py-2.align-top">
+                      <td className="px-3 py-2 align-top">
                         <div className="text-xs font-medium text-gray-900">
                           {club.name}
                         </div>
@@ -159,7 +184,7 @@ export default function ClubAdminPage() {
                             href={club.clubUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="mt-0.5.inline-block text-[10px] text-blue-600 underline"
+                            className="mt-0.5 inline-block text-[10px] text-blue-600 underline"
                           >
                             Visit club page
                           </a>
@@ -206,6 +231,7 @@ export default function ClubAdminPage() {
 
                       <td className="px-3 py-2 text-right align-top">
                         <div className="inline-flex items-center gap-2">
+                          {/* Quarantine still a stub */}
                           <button
                             type="button"
                             onClick={() =>
@@ -217,20 +243,19 @@ export default function ClubAdminPage() {
                           >
                             Quarantine
                           </button>
+
+                          {/* REAL DELETE */}
                           <button
                             type="button"
-                            onClick={() => {
-                              const sure = window.confirm(
-                                `Delete club "${club.name}"?\n\nOnce wired to a delete API, this will be permanent.`
-                              );
-                              if (!sure) return;
-                              setClubs((prev) =>
-                                prev.filter((c) => c.id !== club.id)
-                              );
-                            }}
-                            className="rounded-full bg-red-100 px-3 py-1 text-[10px] font-medium text-red-800 hover:bg-red-200"
+                            onClick={() => handleDeleteClub(club)}
+                            disabled={deletingId === club.id}
+                            className={`rounded-full px-3 py-1 text-[10px] font-medium text-red-800 hover:bg-red-200 ${
+                              deletingId === club.id
+                                ? "bg-red-100 opacity-60 cursor-wait"
+                                : "bg-red-100"
+                            }`}
                           >
-                            Delete
+                            {deletingId === club.id ? "Deleting..." : "Delete"}
                           </button>
                         </div>
                       </td>
