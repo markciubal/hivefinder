@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:superuser": "node prisma/seedSuperUser.js",
+    "seed:clubs": "node prisma/seedClubs.js"
+
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",

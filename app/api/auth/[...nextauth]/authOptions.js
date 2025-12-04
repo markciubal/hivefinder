@@ -23,7 +23,10 @@ export const authOptions = {
         });
         if (!user) return null;
 
-        const isValid = await bcrypt.compare(credentials.password, user.password);
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
         if (!isValid) return null;
 
         return { id: user.id, name: user.username, email: user.email };
@@ -32,11 +35,23 @@ export const authOptions = {
   ],
   callbacks: {
     async session({ session, token }) {
-      if (session.user) session.user.id = token.sub;
+      if (session.user) {
+        session.user.id = token.sub;
+        // 👇 NEW – expose role on session
+        session.user.role = token.role || "MEMBER";
+      }
       return session;
     },
     async jwt({ token, user }) {
-      if (user) token.sub = user.id;
+      if (user) {
+        token.sub = user.id;
+        // 👇 NEW – load role from DB once at login and stash on token
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { role: true },
+        });
+        token.role = dbUser?.role || "MEMBER";
+      }
       return token;
     },
   },
