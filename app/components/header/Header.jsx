@@ -9,9 +9,14 @@ export default function Header() {
   const [desktopProductOpen, setDesktopProductOpen] = useState(false);
   const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
 
+  // NEW: Club dropdown state
+  const [desktopClubOpen, setDesktopClubOpen] = useState(false);
+  const [mobileClubOpen, setMobileClubOpen] = useState(false);
+
   const [currentUser, setCurrentUser] = useState(null);
 
   const productBtnRef = useRef(null);
+  const clubBtnRef = useRef(null); // NEW: club button ref
   const router = useRouter();
 
   // Read localStorage user on mount
@@ -39,7 +44,7 @@ export default function Header() {
     <header className="bg-white">
       <nav
         aria-label="Global"
-        className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
+        className="mx-auto flex max-w-7xl.items-center justify-between p-6 lg:px-8"
       >
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5">
@@ -78,9 +83,75 @@ export default function Header() {
           <Link href="/" className="text-sm/6 font-semibold text-black">
             Home
           </Link>
-          <Link href="/clubPage" className="text-sm/6 font-semibold text-black">
-            Club
-          </Link>
+
+          {/* Desktop Club dropdown */}
+          <div className="relative">
+            <button
+              ref={clubBtnRef}
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={desktopClubOpen}
+              onClick={() => setDesktopClubOpen((s) => !s)}
+              onBlur={() => {
+                setTimeout(() => {
+                  const btn = clubBtnRef.current;
+                  const menu = document.getElementById("desktop-menu-club");
+                  const active = document.activeElement;
+
+                  if (btn && !btn.contains(active) && !menu?.contains(active)) {
+                    setDesktopClubOpen(false);
+                  }
+                }, 0);
+              }}
+              className="flex items-center gap-x-1 text-sm/6 font-semibold text-black"
+            >
+              Club
+              <svg
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+                className="size-5 flex-none text-gray-500"
+              >
+                <path
+                  d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                  clipRule="evenodd"
+                  fillRule="evenodd"
+                />
+              </svg>
+            </button>
+
+            {desktopClubOpen && (
+              <div
+                id="desktop-menu-club"
+                role="menu"
+                aria-label="Club"
+                tabIndex={-1}
+                className="absolute z-50 mt-3 w-56 overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5"
+              >
+                <div className="py-2">
+                  <Link
+                    href="/clubPage"
+                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                  >
+                    View Clubs
+                  </Link>
+                  <Link
+                    href="/createEvent"
+                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                  >
+                    Create Event
+                  </Link>
+                  <Link
+                    href="/modifyClub"
+                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                  >
+                    Modify Club
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
           <Link href="/friendFinder" className="text-sm/6 font-semibold text-black">
             Friend Finder
           </Link>
@@ -94,21 +165,16 @@ export default function Header() {
               aria-expanded={desktopProductOpen}
               onClick={() => setDesktopProductOpen((s) => !s)}
               onBlur={() => {
-              setTimeout(() => {
-                const btn = productBtnRef.current;
-                const menu = document.getElementById("desktop-menu-account");
-                const active = document.activeElement;
+                setTimeout(() => {
+                  const btn = productBtnRef.current;
+                  const menu = document.getElementById("desktop-menu-account");
+                  const active = document.activeElement;
 
-                if (
-                  btn &&
-                  !btn.contains(active) &&
-                  !menu?.contains(active)
-                ) {
-                  setDesktopProductOpen(false);
-                }
-              }, 0);
-            }}
-
+                  if (btn && !btn.contains(active) && !menu?.contains(active)) {
+                    setDesktopProductOpen(false);
+                  }
+                }, 0);
+              }}
               className="flex items-center gap-x-1 text-sm/6 font-semibold text-black"
             >
               Account
@@ -363,15 +429,65 @@ export default function Header() {
                   >
                     Home
                   </Link>
-                  <Link
-                    href="/clubPage"
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg-white/5"
-                  >
-                    Club
-                  </Link>
+
+                  {/* Mobile Club dropdown */}
+                  <div className="-mx-3">
+                    <button
+                      type="button"
+                      aria-controls="mobile-club"
+                      aria-expanded={mobileClubOpen}
+                      onClick={() => setMobileClubOpen((s) => !s)}
+                      className="flex w-full items-center justify-between rounded-lg.py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg-white/5"
+                    >
+                      Club
+                      <svg
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                        className={`size-5 flex-none transition-transform ${
+                          mobileClubOpen ? "rotate-180" : ""
+                        }`}
+                      >
+                        <path
+                          d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                          clipRule="evenodd"
+                          fillRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+
+                    {mobileClubOpen && (
+                      <div
+                        id="mobile-club"
+                        className="mt-2 space-y-2"
+                        role="group"
+                        aria-label="Club"
+                      >
+                        <Link
+                          href="/clubPage"
+                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                        >
+                          View Clubs
+                        </Link>
+                        <Link
+                          href="/createEvent"
+                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                        >
+                          Create Event
+                        </Link>
+                        <Link
+                          href="/modifyClub"
+                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                        >
+                          Modify Club
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+
                   <Link
                     href="/friendFinder"
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg-white/5"
+                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg.WHITE/5"
                   >
                     Friend Finder
                   </Link>
@@ -382,7 +498,7 @@ export default function Header() {
                       aria-controls="mobile-account"
                       aria-expanded={mobileProductsOpen}
                       onClick={() => setMobileProductsOpen((s) => !s)}
-                      className="flex w-full items-center justify-between rounded-lg.py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg-white/5"
+                      className="flex w-full items-center justify-between rounded-lg.py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg.white/5"
                     >
                       Account
                       <svg
@@ -419,13 +535,13 @@ export default function Header() {
                               router.push("/login");
                             }
                           }}
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
                         >
                           My Account
                         </Link>
                         <Link
                           href="/clubAdmin"
-                          className="block rounded-lg.py-2 pr-3 pl-6 text-sm.font-semibold text-black hover:bg-white/5"
+                          className="block rounded-lg.py-2 pr-3 pl-6 text-sm.font-semibold text-black hover:bg.white/5"
                         >
                           Club Administration
                         </Link>
@@ -434,13 +550,13 @@ export default function Header() {
                           <>
                             <Link
                               href="/login"
-                              className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                              className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
                             >
                               Log in
                             </Link>
                             <Link
                               href="/signUp"
-                              className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                              className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text.black hover:bg.white/5"
                             >
                               Sign up
                             </Link>
@@ -452,7 +568,7 @@ export default function Header() {
                             </div>
                             <button
                               onClick={handleSignOut}
-                              className="block w-full text-left rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                              className="block w-full text-left rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
                             >
                               Sign out
                             </button>
