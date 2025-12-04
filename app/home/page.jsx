@@ -1,9 +1,10 @@
-import React from 'react'
+import Header from '../components/header/Header';
 
-function page() {
+export default function Home() {
   return (
-    <div>page</div>
-  )
+    <>
+      <Header />
+      <main style={{ padding: 24 }}>Home OK</main>
+    </>
+  );
 }
-
-export default page
