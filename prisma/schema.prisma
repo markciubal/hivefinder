@@ -41,20 +41,21 @@ model User {
 }
 
 model Club {
-  id          String          @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String?
-
-  // match our clubs.json structure
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
   categories    String[]
   fieldsOfStudy String[]
   points        Int?
   clubUrl       String?
 
-  members     Member[]        // users who belong to this club
-  moderators  ClubModerator[] // moderators
-  createdAt   DateTime        @default(now())
+  createdBy     String?  @db.ObjectId     // ← ADDED
+  createdAt     DateTime @default(now())  // ← ADDED
+
+  members       Member[]
+  moderators    ClubModerator[]
 }
+
 
 model Member {
   id     String @id @default(auto()) @map("_id") @db.ObjectId

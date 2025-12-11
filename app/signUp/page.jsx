@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { api } from '../lib/api';
 import Header from '../components/header/Header';
+
 export default function SignUpPage() {
   const [username, setUsername] = useState('');
   const [email,    setEmail]    = useState('');
@@ -17,6 +17,7 @@ export default function SignUpPage() {
     setError('');
     setMsg('');
 
+    // validation
     if (!username || !email || !password || !confirm) {
       setError('Fill all fields');
       return;
@@ -31,17 +32,30 @@ export default function SignUpPage() {
     }
 
     setLoading(true);
-    try {
-  await fetch('/api/auth/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, password }),
-  });
 
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await res.json();
+
+      // handle server error
+      if (!res.ok) {
+        setError(data.error || 'Signup failed');
+        return;
+      }
+
+      // success
       setMsg('Account created');
-      setTimeout(() => { window.location.href = '/login'; }, 800);
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 800);
+
     } catch (err) {
-      setError(err.message);
+      setError('Network error');
     } finally {
       setLoading(false);
     }
@@ -50,7 +64,7 @@ export default function SignUpPage() {
   return (
     <>
       <Header />
-      
+
       <main className="max-w-2xl mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-center mb-10">Create Account</h1>
 
@@ -110,7 +124,7 @@ export default function SignUpPage() {
           </button>
 
           <div className="text-center text-sm mt-2">
-            <a href="/login" className="underline">Already have an account</a>
+            <a href="/login" className="underline">Already have an account?</a>
           </div>
         </form>
       </main>
