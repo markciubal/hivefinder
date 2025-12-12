@@ -1,0 +1,97 @@
+const Group11 = () => {
+  return (
+    <div className="group-1-1">
+      <img src="" className="img-1" />
+      <img src="" className="img-2" />
+
+      <article className="articletitle">
+        <p className="text-3">Allied students for Justice</p>
+        <p className="text-4">
+          Leadership Development, Community Building, Advocacy and Legislative Action,
+          Skills in Political and Social Issues, Professional Experience
+        </p>
+      </article>
+
+      <article className="articletitle">
+        <p className="text-5">Girls Who Code</p>
+        <p className="text-6">
+          Leadership Development, Community Building, Advocacy and Legislative Action,
+          Skills in Political and Social Issues, Professional Experience
+        </p>
+      </article>
+
+      <div className="club-name">
+        <p className="text-7">Club Listings</p>
+      </div>
+
+      <div className="navigation-footer">
+        <p className="text-8">Location</p>
+        <p className="text-9">
+          CSU Sacramento
+          <br />6000 J St
+          <br />Sacramento, CA 95819
+        </p>
+        <p className="text-1-0">
+          Need Help? Contact Us.
+          <br /><br />
+          hivefindersupport@csus.edu
+        </p>
+        <p className="text-1-1">HiveFinder</p>
+        <div className="divider" />
+        <div className="frame-1-3-2-1-3-1-7-4-5-8" />
+      </div>
+
+      <div className="searchbar">
+        <div className="state--layer">
+          <div className="leading--icon">
+            <div className="content">
+              <div className="state--layer">
+                <img src="" />
+              </div>
+            </div>
+          </div>
+
+          <div className="content">
+            <p className="text-1-3">Search Club</p>
+          </div>
+
+          <div className="trailing---elements">
+            <div className="firsttrailing--icon">
+              <div className="content">
+                <div className="state--layer">
+                  <img src="" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="frame-1-3-2-1-3-1-7-4-6-9" />
+
+      <div className="navigation">
+        <div className="items">
+          <p className="text-1-5">Home</p>
+          <p className="text-1-6">Contact</p>
+          <p className="text-1-7">Club</p>
+          <p className="text-1-8">Friend</p>
+
+          <div className="frame-1-3-2-1-3-1-7-4-6-8">
+            <div className="frame-1-3-2-1-3-1-7-4-6-7">
+              <div className="frame-1-3-2-1-3-1-7-4-6-6">
+                <p className="text-1-9">Account</p>
+                <img src="" />
+              </div>
+            </div>
+          </div>
+
+          <button className="button">
+            <p className="text-2-1">🙂</p>
+          </button>
+        </div>
+
+        <img src="" />
+      </div>
+    </div>
+  );
+};
