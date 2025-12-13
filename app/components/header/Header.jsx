@@ -308,7 +308,6 @@ export default function Header() {
                         className="block font-semibold text-black"
                       >
                         Create Club
-                        <span className="absolute inset-0" />
                       </Link>
                       <p className="mt-1 text-gray-500">
                         Start a new club
