@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 
-// Extend the global object to include the 'prisma' property
 declare global {
   var prisma: PrismaClient | undefined;
 }

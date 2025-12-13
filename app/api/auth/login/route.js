@@ -13,7 +13,7 @@ export async function POST(req) {
     );
   }
 
-  // Include role in the selected fields
+  // find user
   const user = await prisma.user.findFirst({
     where: { email },
     select: {
@@ -21,34 +21,48 @@ export async function POST(req) {
       username: true,
       email: true,
       password: true,
-      //role: true,
-    },
+      role: true
+    }
   });
 
   if (!user) {
-    return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'Invalid credentials' },
+      { status: 401 }
+    );
   }
 
+  // check password
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) {
-    return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'Invalid credentials' },
+      { status: 401 }
+    );
   }
 
-  // Include role in the JWT payload too
+  // create JWT
   const token = jwt.sign(
-    { id: user.id, username: user.username, email: user.email, role: user.role },
+    {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    },
     process.env.NEXTAUTH_SECRET,
     { expiresIn: '7d' }
   );
 
-  // And in the returned user object
+  // 🔥 DEBUG LINE — prints token to terminal
+  console.log("LOGIN TOKEN:", token);
+
   return NextResponse.json({
     token,
     user: {
       id: user.id,
       username: user.username,
       email: user.email,
-      role: user.role,
-    },
+      role: user.role
+    }
   });
 }

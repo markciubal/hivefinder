@@ -9,17 +9,15 @@ export default function Header() {
   const [desktopProductOpen, setDesktopProductOpen] = useState(false);
   const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
 
-  // NEW: Club dropdown state
   const [desktopClubOpen, setDesktopClubOpen] = useState(false);
   const [mobileClubOpen, setMobileClubOpen] = useState(false);
 
   const [currentUser, setCurrentUser] = useState(null);
 
   const productBtnRef = useRef(null);
-  const clubBtnRef = useRef(null); // NEW: club button ref
+  const clubBtnRef = useRef(null);
   const router = useRouter();
 
-  // Read localStorage user on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
@@ -44,7 +42,7 @@ export default function Header() {
     <header className="bg-white">
       <nav
         aria-label="Global"
-        className="mx-auto flex max-w-7xl.items-center justify-between p-6 lg:px-8"
+        className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
       >
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5">
@@ -53,7 +51,6 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Mobile menu button */}
         <div className="flex lg:hidden">
           <button
             type="button"
@@ -78,13 +75,11 @@ export default function Header() {
           </button>
         </div>
 
-        {/* Desktop nav group */}
         <div className="hidden lg:flex lg:gap-x-12">
           <Link href="/" className="text-sm/6 font-semibold text-black">
             Home
           </Link>
 
-          {/* Desktop Club dropdown */}
           <div className="relative">
             <button
               ref={clubBtnRef}
@@ -103,7 +98,7 @@ export default function Header() {
                   }
                 }, 0);
               }}
-              className="flex items-center gap-x-1 text-sm/6 font-semibold text-black"
+              className="flex.items-center gap-x-1 text-sm/6 font-semibold text-black"
             >
               Club
               <svg
@@ -152,11 +147,13 @@ export default function Header() {
             )}
           </div>
 
-          <Link href="/friendFinder" className="text-sm/6 font-semibold text-black">
+          <Link
+            href="/friendFinder"
+            className="text-sm/6 font-semibold text-black"
+          >
             Friend Finder
           </Link>
 
-          {/* Desktop Account popover */}
           <div className="relative">
             <button
               ref={productBtnRef}
@@ -225,12 +222,14 @@ export default function Header() {
                       </svg>
                     </div>
                     <div className="flex-auto">
-                      {/* 🔑 gate My Account based on localStorage at click-time */}
                       <Link
                         href="/account"
                         onClick={(e) => {
                           e.preventDefault();
-                          if (typeof window !== "undefined" && localStorage.getItem("user")) {
+                          if (
+                            typeof window !== "undefined" &&
+                            localStorage.getItem("user")
+                          ) {
                             router.push("/account");
                           } else {
                             router.push("/login");
@@ -242,6 +241,70 @@ export default function Header() {
                         <span className="absolute inset-0" />
                       </Link>
                       <p className="mt-1 text-gray-500">Profile and settings</p>
+                    </div>
+                  </div>
+
+                  {/* My Clubs */}
+                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
+                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                        className="size-6 text-gray-600"
+                      >
+                        <path
+                          d="M4 7h16M6 12h12M8 17h8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-auto">
+                      <Link
+                        href="/myClubs"
+                        className="block font-semibold text-black"
+                      >
+                        My Clubs
+                        <span className="absolute inset-0" />
+                      </Link>
+                      <p className="mt-1 text-gray-500">
+                        Clubs joined or created
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Create Club */}
+                  <div className="group relative flex.items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
+                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                        className="size-6 text-gray-600"
+                      >
+                        <path
+                          d="M12 6v12M6 12h12"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-auto">
+                      <Link
+                        href="/createClub"
+                        className="block font-semibold text-black"
+                      >
+                        Create Club
+                        <span className="absolute inset-0" />
+                      </Link>
+                      <p className="mt-1 text-gray-500">
+                        Start a new club
+                      </p>
                     </div>
                   </div>
 
@@ -264,7 +327,10 @@ export default function Header() {
                       </svg>
                     </div>
                     <div className="flex-auto">
-                      <Link href="/clubAdmin" className="block font-semibold text-black">
+                      <Link
+                        href="/clubAdmin"
+                        className="block font-semibold text-black"
+                      >
                         Club Administration
                         <span className="absolute inset-0" />
                       </Link>
@@ -272,10 +338,8 @@ export default function Header() {
                     </div>
                   </div>
 
-                  {/* IF LOGGED OUT → show Login/Signup cards */}
                   {!currentUser && (
                     <>
-                      {/* Log In */}
                       <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
                         <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
                           <svg
@@ -299,17 +363,21 @@ export default function Header() {
                           </svg>
                         </div>
                         <div className="flex-auto">
-                          <Link href="/login" className="block font-semibold text-black">
+                          <Link
+                            href="/login"
+                            className="block font-semibold text-black"
+                          >
                             Log In
                             <span className="absolute inset-0" />
                           </Link>
-                          <p className="mt-1 text-gray-500">Access your account</p>
+                          <p className="mt-1 text-gray-500">
+                            Access your account
+                          </p>
                         </div>
                       </div>
 
-                      {/* Sign Up */}
-                      <div className="group relative flex.items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                        <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
+                      <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
+                        <div className="flex size-11 flex-none.items-center justify-center rounded-lg bg-gray-200/50">
                           <svg
                             viewBox="0 0 24 24"
                             fill="none"
@@ -326,17 +394,21 @@ export default function Header() {
                           </svg>
                         </div>
                         <div className="flex-auto">
-                          <Link href="/signUp" className="block font-semibold text-black">
+                          <Link
+                            href="/signUp"
+                            className="block font-semibold text-black"
+                          >
                             Sign Up
                             <span className="absolute inset-0" />
                           </Link>
-                          <p className="mt-1 text-gray-500">Create your.account</p>
+                          <p className="mt-1 text-gray-500">
+                            Create your account
+                          </p>
                         </div>
                       </div>
                     </>
                   )}
 
-                  {/* IF LOGGED IN → show greeting + sign out */}
                   {currentUser && (
                     <div className="p-4">
                       <p className="text-sm font-semibold text-black mb-2">
@@ -356,7 +428,6 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Right side auth links */}
         <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-4">
           {currentUser ? (
             <>
@@ -375,7 +446,10 @@ export default function Header() {
               <Link href="/login" className="text-sm/6 font-semibold text-black">
                 Log in <span aria-hidden="true">→</span>
               </Link>
-              <Link href="/signUp" className="text-sm/6 font-semibold text-black">
+              <Link
+                href="/signUp"
+                className="text-sm/6 font-semibold text-black"
+              >
                 Sign up
               </Link>
             </>
@@ -383,7 +457,6 @@ export default function Header() {
         </div>
       </nav>
 
-      {/* Mobile menu */}
       {mobileOpen && (
         <div className="lg:hidden">
           <div
@@ -421,7 +494,7 @@ export default function Header() {
             </div>
 
             <div className="mt-6 flow-root">
-              <div className="-my-6.divide-y divide-white/10">
+              <div className="-my-6 divide-y divide-white/10">
                 <div className="space-y-2 py-6">
                   <Link
                     href="/"
@@ -430,14 +503,13 @@ export default function Header() {
                     Home
                   </Link>
 
-                  {/* Mobile Club dropdown */}
                   <div className="-mx-3">
                     <button
                       type="button"
                       aria-controls="mobile-club"
                       aria-expanded={mobileClubOpen}
                       onClick={() => setMobileClubOpen((s) => !s)}
-                      className="flex w-full items-center justify-between rounded-lg.py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg-white/5"
+                      className="flex w-full items-center justify-between rounded-lg py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg-white/5"
                     >
                       Club
                       <svg
@@ -471,13 +543,13 @@ export default function Header() {
                         </Link>
                         <Link
                           href="/createEvent"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
                         >
                           Create Event
                         </Link>
                         <Link
                           href="/modifyClub"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
                         >
                           Modify Club
                         </Link>
@@ -487,7 +559,7 @@ export default function Header() {
 
                   <Link
                     href="/friendFinder"
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg.WHITE/5"
+                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg.white/5"
                   >
                     Friend Finder
                   </Link>
@@ -498,7 +570,7 @@ export default function Header() {
                       aria-controls="mobile-account"
                       aria-expanded={mobileProductsOpen}
                       onClick={() => setMobileProductsOpen((s) => !s)}
-                      className="flex w-full items-center justify-between rounded-lg.py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg.white/5"
+                      className="flex w-full.items-center justify-between rounded-lg py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg.white/5"
                     >
                       Account
                       <svg
@@ -524,12 +596,14 @@ export default function Header() {
                         role="group"
                         aria-label="Account"
                       >
-                        {/* 🔑 Mobile My Account gate */}
                         <Link
                           href="/account"
                           onClick={(e) => {
                             e.preventDefault();
-                            if (typeof window !== "undefined" && localStorage.getItem("user")) {
+                            if (
+                              typeof window !== "undefined" &&
+                              localStorage.getItem("user")
+                            ) {
                               router.push("/account");
                             } else {
                               router.push("/login");
@@ -539,9 +613,24 @@ export default function Header() {
                         >
                           My Account
                         </Link>
+
+                        <Link
+                          href="/myClubs"
+                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
+                        >
+                          My Clubs
+                        </Link>
+
+                        <Link
+                          href="/createClub"
+                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
+                        >
+                          Create Club
+                        </Link>
+
                         <Link
                           href="/clubAdmin"
-                          className="block rounded-lg.py-2 pr-3 pl-6 text-sm.font-semibold text-black hover:bg.white/5"
+                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
                         >
                           Club Administration
                         </Link>
@@ -550,13 +639,13 @@ export default function Header() {
                           <>
                             <Link
                               href="/login"
-                              className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
+                              className="block rounded-lg.py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
                             >
                               Log in
                             </Link>
                             <Link
                               href="/signUp"
-                              className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text.black hover:bg.white/5"
+                              className="block rounded-lg.py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
                             >
                               Sign up
                             </Link>
