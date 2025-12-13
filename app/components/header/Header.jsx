@@ -142,6 +142,12 @@ export default function Header() {
                   >
                     Modify Club
                   </Link>
+                  <Link
+                    href="/createClub"
+                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                  >
+                    Create Club
+                  </Link>
                 </div>
               </div>
             )}
@@ -552,6 +558,12 @@ export default function Header() {
                           className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
                         >
                           Modify Club
+                        </Link>
+                        <Link
+                          href="/createClub"
+                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
+                        >
+                          Create Club
                         </Link>
                       </div>
                     )}
