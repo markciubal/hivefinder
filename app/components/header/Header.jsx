@@ -285,7 +285,7 @@ export default function Header() {
                   </div>
 
                   {/* Create Club */}
-                  <div className="group relative flex.items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
+                  <div className="group relative flex-items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
                     <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
                       <svg
                         viewBox="0 0 24 24"
