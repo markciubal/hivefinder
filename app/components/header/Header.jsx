@@ -203,6 +203,8 @@ export default function Header() {
                 tabIndex={-1}
                 className="absolute z-50 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white outline outline-1 -outline-offset-1 outline-white/10"
               >
+              {currentUser && (
+                <>
                 <div className="p-4">
                   {/* My Account */}
                   <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
@@ -429,6 +431,8 @@ export default function Header() {
                     </div>
                   )}
                 </div>
+                </>
+              )}
               </div>
             )}
           </div>
@@ -547,24 +551,28 @@ export default function Header() {
                         >
                           View Clubs
                         </Link>
-                        <Link
-                          href="/createEvent"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          Create Event
-                        </Link>
-                        <Link
-                          href="/modifyClub"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          Modify Club
-                        </Link>
-                        <Link
-                          href="/createClub"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          Create Club
-                        </Link>
+                        {currentUser && (
+                        <>
+                          <Link
+                            href="/createEvent"
+                            className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
+                          >
+                            Create Event
+                          </Link>
+                          <Link
+                            href="/modifyClub"
+                            className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
+                          >
+                            Modify Club
+                          </Link>
+                          <Link
+                            href="/createClub"
+                            className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
+                          >
+                            Create Club
+                          </Link>
+                        </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -608,6 +616,8 @@ export default function Header() {
                         role="group"
                         aria-label="Account"
                       >
+                      {currentUser && (
+                        <>
                         <Link
                           href="/account"
                           onClick={(e) => {
@@ -646,7 +656,8 @@ export default function Header() {
                         >
                           Club Administration
                         </Link>
-
+                        </>
+                      )}
                         {!currentUser ? (
                           <>
                             <Link
