@@ -1,14 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import Link from "next/link";
 import Header from "../components/header/Header.jsx";
-import interests from '../../utilities/interests.json';
-// removed dummy users
-// import users_500 from '../../utilities/users_500.json';
-
-function getRandomInterests(interests, count) {
-  const shuffled = [...interests].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count).sort();
-}
 
 export default function Page() {
   const [userSelf, setUserSelf] = useState({});
@@ -16,7 +9,6 @@ export default function Page() {
 
   const [organizedFriends, setOrganizedFriends] = useState([]);
   const [filteredFriends, setFilteredFriends] = useState([]);
-  const [clubFriends, setClubFriends] = useState([]);
   const [matchedStatistics, setMatchedStatistics] = useState({ interests: [], memberships: [] });
 
   const [otherInterestsModal, setOtherInterestsModal] = useState(null);
@@ -27,7 +19,7 @@ export default function Page() {
   const counterStyle = "mx-1 inline-flex items-center justify-center w-3 h-3 p-2 text-xxxs font-semibold text-neutral-800 bg-[#f4c201] rounded-full position-relative top-0 left-0";
   const starStyle = "w-3 h-3 mx-0 shrink-0 text-yellow-400 transition peer-checked:scale-130 peer-checked:rotate-360 peer-checked:fill-yellow-400 peer-checked:stroke-yellow-400 fill-transparent stroke-gray-300 stroke-[3] cursor-pointer";
 
-  const handleFilterChange = (event) => {
+  const handleFilterChange = () => {
     const selectedSimilarities = document.querySelectorAll('input[name="checkbox"]:checked');
     const selectedSimilaritiesArray = Array.from(selectedSimilarities).map(input => input.value);
 
@@ -57,9 +49,6 @@ export default function Page() {
   // Initialize self + load friends from DB
   useEffect(() => {
     async function init() {
-      // Default self interests = random if we can't load real ones
-      const randomInterests = getRandomInterests(interests, 10);
-
       const storedUser =
         typeof window !== 'undefined'
           ? JSON.parse(localStorage.getItem('user') || 'null')
@@ -69,28 +58,40 @@ export default function Page() {
       let selfUsername =
         storedUser?.username ||
         storedUser?.email?.split('@')[0] ||
-        "demoUser";
-      let selfInterests = randomInterests;
+        "guest";
+      let selfInterests = [];
+      let selfMemberships = [];
 
-      // Try to load real self interests from /api/user/me if logged in
+      // Load self profile + memberships from DB when logged in
       try {
         if (typeof window !== 'undefined') {
           const token = localStorage.getItem('token');
           if (token) {
-            const meRes = await fetch('/api/user/me', {
-              method: 'GET',
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
+            const [meRes, myClubsRes] = await Promise.all([
+              fetch('/api/user/me', {
+                method: 'GET',
+                headers: { Authorization: `Bearer ${token}` },
+              }),
+              fetch('/api/user/myClubs', {
+                method: 'GET',
+                headers: { Authorization: `Bearer ${token}` },
+              }),
+            ]);
 
             if (meRes.ok) {
               const me = await meRes.json();
               selfId = me.id || selfId;
-              selfUsername = me.username || selfUsername;
-              if (Array.isArray(me.interests) && me.interests.length > 0) {
-                selfInterests = me.interests;
-              }
+              selfUsername = me.username || me.email?.split('@')[0] || selfUsername;
+              selfInterests = Array.isArray(me.interests) ? me.interests : [];
+            }
+
+            if (myClubsRes.ok) {
+              const memberships = await myClubsRes.json();
+              selfMemberships = Array.isArray(memberships)
+                ? memberships
+                    .map((m) => ({ club: m?.club?.name || '' }))
+                    .filter((m) => m.club)
+                : [];
             }
           }
         }
@@ -102,11 +103,7 @@ export default function Page() {
         id: selfId,
         username: selfUsername,
         interests: selfInterests,
-        // memberships still demo until wired to real DB
-        memberships: [
-          { club: "Men's Soccer Club" },
-          { club: "The Belonging Collective" },
-        ],
+        memberships: selfMemberships,
       });
 
       // Load other users from API
@@ -157,8 +154,6 @@ export default function Page() {
       .filter((u) => u.matchedInterests.length > 0 || u.matchedClubs.length > 0);
 
     setMatchedStatistics(matchedStats);
-    setClubFriends(matches);
-
     const organized = matches
       .map((user) => {
         const sharedInterests = (user.interests || []).filter((interest) =>
@@ -187,6 +182,14 @@ export default function Page() {
           <h1 className="text-lg py-3 font-semibold text-black uppercase">
             Find Friends
           </h1>
+          <div className="mb-3">
+            <Link
+              href="/networkGraphMode"
+              className="text-sm font-semibold text-[#0b5a21] underline underline-offset-2 hover:text-[#084618]"
+            >
+              Open Network Graph Mode
+            </Link>
+          </div>
           {/* Card grid: self + matches */}
           <div className="w-full flex justify-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-5xl justify-center">
@@ -240,7 +243,7 @@ export default function Page() {
                         <h2 className="text-sm font-semibold text-black m-2">
                           Filter by Common Memberships
                         </h2>
-                        {userSelf.memberships.map((membership, index) => {
+                        {userSelf.memberships.map((membership) => {
                           const style = sharedStyle;
                           return (
                             <span

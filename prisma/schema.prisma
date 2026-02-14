@@ -13,6 +13,11 @@ enum Role {
   MEMBER
 }
 
+enum InterestSubmissionStatus {
+  APPROVED
+  REJECTED
+}
+
 model User {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
   username  String?  @unique
@@ -35,9 +40,28 @@ model User {
   // Back-relations
   memberships Member[]       // clubs they belong to
   moderations ClubModerator[] // clubs they moderate
+  interestSubmissions InterestSubmission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model InterestSubmission {
+  id                 String                   @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String                   @db.ObjectId
+  interest           String
+  normalizedInterest String
+  toxicityScore      Float                    @default(0)
+  status             InterestSubmissionStatus @default(APPROVED)
+  reason             String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, normalizedInterest])
+  @@index([normalizedInterest, status])
 }
 
 model Club {

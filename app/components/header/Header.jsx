@@ -1,53 +1,134 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+const topLinkClass =
+  "text-sm/6 font-semibold text-black transition-colors hover:text-gray-700";
+const triggerClass =
+  "flex items-center gap-x-1 text-sm/6 font-semibold text-black transition-colors hover:text-gray-700";
+const desktopDropdownClass =
+  "absolute z-50 mt-3 overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5";
+const desktopMenuItemClass =
+  "block px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50";
+const mobileLinkClass =
+  "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-black transition-colors hover:bg-black/5";
+const mobileDisclosureButtonClass =
+  "flex w-full items-center justify-between rounded-lg py-2 pr-3.5 pl-3 text-base font-semibold text-black transition-colors hover:bg-black/5";
+const mobileMenuItemClass =
+  "block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black transition-colors hover:bg-black/5";
+const sectionLabelClass =
+  "px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500";
+
+const desktopLinks = [
+  { href: "/", label: "Home" },
+  { href: "/friendFinder", label: "Friend Finder" },
+];
+
+const clubLinks = [
+  { href: "/clubPage", label: "View Clubs" },
+  { href: "/createEvent", label: "Create Event", requiresAuth: true },
+  { href: "/modifyClub", label: "Modify Club", requiresAuth: true },
+  { href: "/createClub", label: "Create Club", requiresAuth: true },
+];
+
+const accountLinks = [
+  { href: "/account", label: "My Account" },
+  { href: "/myClubs", label: "My Clubs" },
+  { href: "/createClub", label: "Create Club" },
+  { href: "/clubAdmin", label: "Club Administration" },
+];
+
+const guestLinks = [
+  { href: "/login", label: "Log in" },
+  { href: "/signUp", label: "Sign up" },
+];
+
+const ChevronIcon = ({ open }) => (
+  <svg
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    aria-hidden="true"
+    className={`size-5 flex-none text-gray-500 transition-transform ${
+      open ? "rotate-180" : ""
+    }`}
+  >
+    <path
+      d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+      clipRule="evenodd"
+      fillRule="evenodd"
+    />
+  </svg>
+);
+
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [desktopProductOpen, setDesktopProductOpen] = useState(false);
-  const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
-
   const [desktopClubOpen, setDesktopClubOpen] = useState(false);
   const [mobileClubOpen, setMobileClubOpen] = useState(false);
+  const [desktopAccountOpen, setDesktopAccountOpen] = useState(false);
+  const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
 
-  const [currentUser, setCurrentUser] = useState(null);
+    try {
+      const rawUser = localStorage.getItem("user");
+      return rawUser ? JSON.parse(rawUser) : null;
+    } catch (error) {
+      console.error("Error parsing user:", error);
+      return null;
+    }
+  });
 
-  const productBtnRef = useRef(null);
   const clubBtnRef = useRef(null);
+  const accountBtnRef = useRef(null);
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const u = localStorage.getItem("user");
-        if (u) setCurrentUser(JSON.parse(u));
-      } catch (e) {
-        console.error("Error parsing user:", e);
-      }
-    }
-  }, []);
+  const displayName =
+    currentUser?.username || currentUser?.email?.split("@")[0] || "Member";
+
+  const closeDesktopMenus = () => {
+    setDesktopClubOpen(false);
+    setDesktopAccountOpen(false);
+  };
+
+  const closeMobileMenus = () => {
+    setMobileClubOpen(false);
+    setMobileAccountOpen(false);
+    setMobileOpen(false);
+  };
 
   const handleSignOut = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("user");
       localStorage.removeItem("token");
     }
+
     setCurrentUser(null);
+    closeDesktopMenus();
+    closeMobileMenus();
     router.push("/");
   };
 
   return (
-    <header className="bg-white">
+    <header className="border-b border-black/5 bg-white">
       <nav
         aria-label="Global"
         className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
       >
         <div className="flex lg:flex-1">
-          <Link href="/" className="-m-1.5 p-1.5">
+          <Link href="/" className="-m-1.5 p-1.5" onClick={closeMobileMenus}>
             <span className="sr-only">HiveFinder</span>
-            <img src="/logo.png" alt="HiveFinder logo" className="h-8 w-auto" />
+            <Image
+              src="/logo.png"
+              alt="HiveFinder logo"
+              width={128}
+              height={32}
+              className="h-8 w-auto"
+            />
           </Link>
         </div>
 
@@ -56,7 +137,7 @@ export default function Header() {
             type="button"
             aria-label="Open main menu"
             onClick={() => setMobileOpen(true)}
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-400"
+            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-600"
           >
             <svg
               viewBox="0 0 24 24"
@@ -75,10 +156,12 @@ export default function Header() {
           </button>
         </div>
 
-        <div className="hidden lg:flex lg:gap-x-12">
-          <Link href="/" className="text-sm/6 font-semibold text-black">
-            Home
-          </Link>
+        <div className="hidden lg:flex lg:items-center lg:gap-x-12">
+          {desktopLinks.map((item) => (
+            <Link key={item.href} href={item.href} className={topLinkClass}>
+              {item.label}
+            </Link>
+          ))}
 
           <div className="relative">
             <button
@@ -86,33 +169,29 @@ export default function Header() {
               type="button"
               aria-haspopup="menu"
               aria-expanded={desktopClubOpen}
-              onClick={() => setDesktopClubOpen((s) => !s)}
+              onClick={() => {
+                setDesktopClubOpen((open) => !open);
+                setDesktopAccountOpen(false);
+              }}
               onBlur={() => {
                 setTimeout(() => {
-                  const btn = clubBtnRef.current;
+                  const button = clubBtnRef.current;
                   const menu = document.getElementById("desktop-menu-club");
-                  const active = document.activeElement;
+                  const activeElement = document.activeElement;
 
-                  if (btn && !btn.contains(active) && !menu?.contains(active)) {
+                  if (
+                    button &&
+                    !button.contains(activeElement) &&
+                    !menu?.contains(activeElement)
+                  ) {
                     setDesktopClubOpen(false);
                   }
                 }, 0);
               }}
-              className="flex.items-center gap-x-1 text-sm/6 font-semibold text-black"
+              className={triggerClass}
             >
               Club
-              <svg
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-                className="size-5 flex-none text-gray-500"
-              >
-                <path
-                  d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                  clipRule="evenodd"
-                  fillRule="evenodd"
-                />
-              </svg>
+              <ChevronIcon open={desktopClubOpen} />
             </button>
 
             {desktopClubOpen && (
@@ -121,347 +200,115 @@ export default function Header() {
                 role="menu"
                 aria-label="Club"
                 tabIndex={-1}
-                className="absolute z-50 mt-3 w-56 overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5"
+                className={`${desktopDropdownClass} w-56`}
               >
                 <div className="py-2">
-                  <Link
-                    href="/clubPage"
-                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
-                  >
-                    View Clubs
-                  </Link>
-                  <Link
-                    href="/createEvent"
-                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
-                  >
-                    Create Event
-                  </Link>
-                  <Link
-                    href="/modifyClub"
-                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
-                  >
-                    Modify Club
-                  </Link>
-                  <Link
-                    href="/createClub"
-                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
-                  >
-                    Create Club
-                  </Link>
+                  {clubLinks
+                    .filter((link) => !link.requiresAuth || currentUser)
+                    .map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={desktopMenuItemClass}
+                        onClick={closeDesktopMenus}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
                 </div>
               </div>
             )}
           </div>
 
-          <Link
-            href="/friendFinder"
-            className="text-sm/6 font-semibold text-black"
-          >
-            Friend Finder
-          </Link>
-
           <div className="relative">
             <button
-              ref={productBtnRef}
+              ref={accountBtnRef}
               type="button"
               aria-haspopup="menu"
-              aria-expanded={desktopProductOpen}
-              onClick={() => setDesktopProductOpen((s) => !s)}
+              aria-expanded={desktopAccountOpen}
+              onClick={() => {
+                setDesktopAccountOpen((open) => !open);
+                setDesktopClubOpen(false);
+              }}
               onBlur={() => {
                 setTimeout(() => {
-                  const btn = productBtnRef.current;
+                  const button = accountBtnRef.current;
                   const menu = document.getElementById("desktop-menu-account");
-                  const active = document.activeElement;
+                  const activeElement = document.activeElement;
 
-                  if (btn && !btn.contains(active) && !menu?.contains(active)) {
-                    setDesktopProductOpen(false);
+                  if (
+                    button &&
+                    !button.contains(activeElement) &&
+                    !menu?.contains(activeElement)
+                  ) {
+                    setDesktopAccountOpen(false);
                   }
                 }, 0);
               }}
-              className="flex items-center gap-x-1 text-sm/6 font-semibold text-black"
+              className={triggerClass}
             >
               Account
-              <svg
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-                className="size-5 flex-none text-gray-500"
-              >
-                <path
-                  d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                  clipRule="evenodd"
-                  fillRule="evenodd"
-                />
-              </svg>
+              <ChevronIcon open={desktopAccountOpen} />
             </button>
 
-            {desktopProductOpen && (
+            {desktopAccountOpen && (
               <div
                 id="desktop-menu-account"
                 role="menu"
                 aria-label="Account"
                 tabIndex={-1}
-                className="absolute z-50 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white outline outline-1 -outline-offset-1 outline-white/10"
+                className={`${desktopDropdownClass} w-64`}
               >
-              {currentUser && (
-                <>
-                <div className="p-4">
-                  {/* My Account */}
-                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                        className="size-6 text-gray-600"
-                      >
-                        <path
-                          d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M4.5 21a8.25 8.25 0 1 1 15 0"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-auto">
-                      <Link
-                        href="/account"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (
-                            typeof window !== "undefined" &&
-                            localStorage.getItem("user")
-                          ) {
-                            router.push("/account");
-                          } else {
-                            router.push("/login");
-                          }
-                        }}
-                        className="block font-semibold text-black"
-                      >
-                        My Account
-                        <span className="absolute inset-0" />
-                      </Link>
-                      <p className="mt-1 text-gray-500">Profile and settings</p>
-                    </div>
-                  </div>
+                <div className="py-2">
+                  <p className={sectionLabelClass}>Account</p>
+                  {currentUser
+                    ? accountLinks.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          className={desktopMenuItemClass}
+                          onClick={closeDesktopMenus}
+                        >
+                          {link.label}
+                        </Link>
+                      ))
+                    : guestLinks.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          className={desktopMenuItemClass}
+                          onClick={closeDesktopMenus}
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
 
-                  {/* My Clubs */}
-                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                        className="size-6 text-gray-600"
-                      >
-                        <path
-                          d="M4 7h16M6 12h12M8 17h8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-auto">
-                      <Link
-                        href="/myClubs"
-                        className="block font-semibold text-black"
-                      >
-                        My Clubs
-                        <span className="absolute inset-0" />
-                      </Link>
-                      <p className="mt-1 text-gray-500">
-                        Clubs joined or created
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Create Club */}
-                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                        className="size-6 text-gray-600"
-                      >
-                        <path
-                          d="M12 6v12M6 12h12"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-auto">
-                      <Link
-                        href="/createClub"
-                        className="block font-semibold text-black"
-                      >
-                        Create Club
-                        <span className="absolute inset-0" />
-                      </Link>
-                      <p className="mt-1 text-gray-500">Start a new club</p>
-                    </div>
-                  </div>
-
-                  {/* Club Admin */}
-                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                        className="size-6 text-gray-600"
-                      >
-                        <path
-                          d="M3 7.5h18M6 12h12M9 16.5h6"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-auto">
-                      <Link
-                        href="/clubAdmin"
-                        className="block font-semibold text-black"
-                      >
-                        Club Administration
-                        <span className="absolute inset-0" />
-                      </Link>
-                      <p className="mt-1 text-gray-500">Manage clubs</p>
-                    </div>
-                  </div>
-
-                  {!currentUser && (
+                  {currentUser && (
                     <>
-                      <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                        <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            aria-hidden="true"
-                            className="size-6 text-gray-600"
-                          >
-                            <path
-                              d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-9A2.25 2.25 0 0 0 2.25 5.25v13.5A2.25 2.25 0 0 0 4.5 21h9a2.25 2.25 0 0 0 2.25-2.25V15"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M18 12H7.5m0 0 3-3m-3 3 3 3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-auto">
-                          <Link
-                            href="/login"
-                            className="block font-semibold text-black"
-                          >
-                            Log In
-                            <span className="absolute inset-0" />
-                          </Link>
-                          <p className="mt-1 text-gray-500">
-                            Access your account
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                        <div className="flex size-11 flex-none.items-center justify-center rounded-lg bg-gray-200/50">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            aria-hidden="true"
-                            className="size-6 text-gray-600"
-                          >
-                            <path
-                              d="M12 6v12M6 12h12"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-auto">
-                          <Link
-                            href="/signUp"
-                            className="block font-semibold text-black"
-                          >
-                            Sign Up
-                            <span className="absolute inset-0" />
-                          </Link>
-                          <p className="mt-1 text-gray-500">
-                            Create your account
-                          </p>
-                        </div>
+                      <div className="my-2 border-t border-black/10" />
+                      <div className="px-4 py-2">
+                        <p className="text-sm font-semibold text-black">
+                          Hi {displayName}!
+                        </p>
+                        <button
+                          onClick={handleSignOut}
+                          className="mt-1 text-sm font-semibold text-red-600 transition-colors hover:text-red-700"
+                        >
+                          Sign out
+                        </button>
                       </div>
                     </>
                   )}
-
-                  {currentUser && (
-                    <div className="p-4">
-                      <p className="text-sm font-semibold text-black mb-2">
-                        Hi {currentUser.username}!
-                      </p>
-                      <button
-                        onClick={handleSignOut}
-                        className="text-sm text-red-600 font-semibold"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  )}
                 </div>
-                </>
-              )}
               </div>
             )}
           </div>
         </div>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-4">
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           {currentUser ? (
-            <>
-              <span className="text-sm/6 font-semibold text-black">
-                Hi {currentUser.username}!
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="text-sm/6 font-semibold text-black"
-              >
-                Sign out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link href="/login" className="text-sm/6 font-semibold text-black">
-                Log in <span aria-hidden="true">→</span>
-              </Link>
-              <Link
-                href="/signUp"
-                className="text-sm/6 font-semibold text-black"
-              >
-                Sign up
-              </Link>
-            </>
-          )}
+            <span className="text-sm/6 font-semibold text-black">Hi {displayName}!</span>
+          ) : null}
         </div>
       </nav>
 
@@ -470,19 +317,27 @@ export default function Header() {
           <div
             className="fixed inset-0 z-40 bg-black/30"
             aria-hidden="true"
-            onClick={() => setMobileOpen(false)}
+            onClick={closeMobileMenus}
           />
-          <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-[#c4ceb2] p-6 sm:max-w-sm sm:ring-1 sm:ring-white/10">
+
+          <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white p-6 sm:max-w-sm sm:ring-1 sm:ring-black/10">
             <div className="flex items-center justify-between">
-              <Link href="/" className="-m-1.5 p-1.5">
+              <Link href="/" className="-m-1.5 p-1.5" onClick={closeMobileMenus}>
                 <span className="sr-only">HiveFinder</span>
-                <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
+                <Image
+                  src="/logo.png"
+                  alt="HiveFinder logo"
+                  width={128}
+                  height={32}
+                  className="h-8 w-auto"
+                />
               </Link>
+
               <button
                 type="button"
                 aria-label="Close menu"
-                onClick={() => setMobileOpen(false)}
-                className="-m-2.5 rounded-md p-2.5 text-gray-900"
+                onClick={closeMobileMenus}
+                className="-m-2.5 rounded-md p-2.5 text-gray-700"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -502,183 +357,106 @@ export default function Header() {
             </div>
 
             <div className="mt-6 flow-root">
-              <div className="-my-6 divide-y divide-white/10">
+              <div className="-my-6 divide-y divide-black/10">
                 <div className="space-y-2 py-6">
-                  <Link
-                    href="/"
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg-white/5"
-                  >
-                    Home
-                  </Link>
+                  {desktopLinks.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={mobileLinkClass}
+                      onClick={closeMobileMenus}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
 
                   <div className="-mx-3">
                     <button
                       type="button"
                       aria-controls="mobile-club"
                       aria-expanded={mobileClubOpen}
-                      onClick={() => setMobileClubOpen((s) => !s)}
-                      className="flex w-full items-center justify-between rounded-lg py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg-white/5"
+                      onClick={() => setMobileClubOpen((open) => !open)}
+                      className={mobileDisclosureButtonClass}
                     >
                       Club
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden="true"
-                        className={`size-5 flex-none transition-transform ${
-                          mobileClubOpen ? "rotate-180" : ""
-                        }`}
-                      >
-                        <path
-                          d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                          clipRule="evenodd"
-                          fillRule="evenodd"
-                        />
-                      </svg>
+                      <ChevronIcon open={mobileClubOpen} />
                     </button>
 
                     {mobileClubOpen && (
                       <div
                         id="mobile-club"
-                        className="mt-2 space-y-2"
+                        className="mt-2 space-y-1"
                         role="group"
                         aria-label="Club"
                       >
-                        <Link
-                          href="/clubPage"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
-                        >
-                          View Clubs
-                        </Link>
-                        {currentUser && (
-                        <>
-                          <Link
-                            href="/createEvent"
-                            className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                          >
-                            Create Event
-                          </Link>
-                          <Link
-                            href="/modifyClub"
-                            className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                          >
-                            Modify Club
-                          </Link>
-                          <Link
-                            href="/createClub"
-                            className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                          >
-                            Create Club
-                          </Link>
-                        </>
-                        )}
+                        {clubLinks
+                          .filter((link) => !link.requiresAuth || currentUser)
+                          .map((link) => (
+                            <Link
+                              key={link.href}
+                              href={link.href}
+                              className={mobileMenuItemClass}
+                              onClick={closeMobileMenus}
+                            >
+                              {link.label}
+                            </Link>
+                          ))}
                       </div>
                     )}
                   </div>
-
-                  <Link
-                    href="/friendFinder"
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg.white/5"
-                  >
-                    Friend Finder
-                  </Link>
 
                   <div className="-mx-3">
                     <button
                       type="button"
                       aria-controls="mobile-account"
-                      aria-expanded={mobileProductsOpen}
-                      onClick={() => setMobileProductsOpen((s) => !s)}
-                      className="flex w-full.items-center justify-between rounded-lg py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg.white/5"
+                      aria-expanded={mobileAccountOpen}
+                      onClick={() => setMobileAccountOpen((open) => !open)}
+                      className={mobileDisclosureButtonClass}
                     >
                       Account
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden="true"
-                        className={`size-5 flex-none transition-transform ${
-                          mobileProductsOpen ? "rotate-180" : ""
-                        }`}
-                      >
-                        <path
-                          d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                          clipRule="evenodd"
-                          fillRule="evenodd"
-                        />
-                      </svg>
+                      <ChevronIcon open={mobileAccountOpen} />
                     </button>
 
-                    {mobileProductsOpen && (
+                    {mobileAccountOpen && (
                       <div
                         id="mobile-account"
-                        className="mt-2 space-y-2"
+                        className="mt-2 space-y-1"
                         role="group"
                         aria-label="Account"
                       >
-                      {currentUser && (
-                        <>
-                        <Link
-                          href="/account"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (
-                              typeof window !== "undefined" &&
-                              localStorage.getItem("user")
-                            ) {
-                              router.push("/account");
-                            } else {
-                              router.push("/login");
-                            }
-                          }}
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          My Account
-                        </Link>
+                        <p className={sectionLabelClass}>Account</p>
 
-                        <Link
-                          href="/myClubs"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          My Clubs
-                        </Link>
+                        {currentUser
+                          ? accountLinks.map((link) => (
+                              <Link
+                                key={link.href}
+                                href={link.href}
+                                className={mobileMenuItemClass}
+                                onClick={closeMobileMenus}
+                              >
+                                {link.label}
+                              </Link>
+                            ))
+                          : guestLinks.map((link) => (
+                              <Link
+                                key={link.href}
+                                href={link.href}
+                                className={mobileMenuItemClass}
+                                onClick={closeMobileMenus}
+                              >
+                                {link.label}
+                              </Link>
+                            ))}
 
-                        <Link
-                          href="/createClub"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          Create Club
-                        </Link>
-
-                        <Link
-                          href="/clubAdmin"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          Club Administration
-                        </Link>
-                        </>
-                      )}
-                        {!currentUser ? (
+                        {currentUser && (
                           <>
-                            <Link
-                              href="/login"
-                              className="block rounded-lg.py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                            >
-                              Log in
-                            </Link>
-                            <Link
-                              href="/signUp"
-                              className="block rounded-lg.py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                            >
-                              Sign up
-                            </Link>
-                          </>
-                        ) : (
-                          <>
-                            <div className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black">
-                              Hi {currentUser.username}!
+                            <div className="my-2 border-t border-black/10" />
+                            <div className="rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black">
+                              Hi {displayName}!
                             </div>
                             <button
                               onClick={handleSignOut}
-                              className="block w-full text-left rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
+                              className={`${mobileMenuItemClass} w-full text-left text-red-600 hover:text-red-700`}
                             >
                               Sign out
                             </button>

@@ -1,11 +1,19 @@
 import React from "react";
+import Image from "next/image";
 import DefaultButton from "../buttons/DefaultButton.jsx";
 
 export default function Body() {
   return (
     <>
       <div className="bg-[#c4ceb2] p-4 w-3/4 rounded-3xl text-center mx-auto my-8">
-        <img src="/logo.png" alt="HiveFinder Logo" className="mx-auto mb-3 w-full max-w-[300px] h-auto" />
+        <Image
+          src="/logo.png"
+          alt="HiveFinder Logo"
+          width={300}
+          height={120}
+          className="mx-auto mb-3 h-auto w-full max-w-[300px]"
+          priority
+        />
         <p className="text-2xl font-bold">A one-stop shop for clubs and organizations.</p>
       </div>
 
@@ -23,6 +31,14 @@ export default function Body() {
           Click the button below to head to our friend finder page where you can find friends with the same interest!
         </p>
         <DefaultButton type="link" label="Friend Finder" url="/friendFinder" />
+        <div className="mt-3">
+          <a
+            href="/networkGraphMode"
+            className="text-sm font-semibold text-[#0b5a21] underline underline-offset-2 hover:text-[#084618]"
+          >
+            Try Network Graph Mode
+          </a>
+        </div>
       </div>
     </>
   );
