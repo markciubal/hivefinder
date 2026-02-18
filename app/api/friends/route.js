@@ -1,8 +1,15 @@
 // app/api/friends/route.js
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { friendFinderSampleFriends } from '@/lib/friendFinderSampleData';
 
-export async function GET() {
+export async function GET(request) {
+  const requestUrl = new URL(request.url);
+  const demoParam = requestUrl.searchParams.get('demo');
+  if (demoParam === '1' || demoParam === 'true') {
+    return NextResponse.json(friendFinderSampleFriends);
+  }
+
   const users = await prisma.user.findMany({
     include: {
       memberships: {

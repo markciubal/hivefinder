@@ -2,10 +2,15 @@
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import Header from "../components/header/Header.jsx";
+import {
+  friendFinderSampleFriends,
+  friendFinderSampleSelf,
+} from "@/lib/friendFinderSampleData";
 
 export default function Page() {
   const [userSelf, setUserSelf] = useState({});
   const [allFriends, setAllFriends] = useState([]); // real users from API
+  const [usingSampleData, setUsingSampleData] = useState(false);
 
   const [organizedFriends, setOrganizedFriends] = useState([]);
   const [filteredFriends, setFilteredFriends] = useState([]);
@@ -54,6 +59,10 @@ export default function Page() {
           ? JSON.parse(localStorage.getItem('user') || 'null')
           : null;
 
+      const token =
+        typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const isGuest = !token;
+
       let selfId = storedUser?.id || 'self';
       let selfUsername =
         storedUser?.username ||
@@ -62,10 +71,31 @@ export default function Page() {
       let selfInterests = [];
       let selfMemberships = [];
 
+      if (isGuest) {
+        setUsingSampleData(true);
+        setUserSelf({
+          ...friendFinderSampleSelf,
+          interests: [...friendFinderSampleSelf.interests],
+          memberships: friendFinderSampleSelf.memberships.map((membership) => ({
+            club: membership.club,
+          })),
+        });
+
+        try {
+          const res = await fetch('/api/friends?demo=1');
+          if (!res.ok) throw new Error('Failed to load sample friends');
+          const data = await res.json();
+          setAllFriends(Array.isArray(data) ? data : friendFinderSampleFriends);
+        } catch (err) {
+          console.error(err);
+          setAllFriends(friendFinderSampleFriends);
+        }
+        return;
+      }
+
       // Load self profile + memberships from DB when logged in
       try {
         if (typeof window !== 'undefined') {
-          const token = localStorage.getItem('token');
           if (token) {
             const [meRes, myClubsRes] = await Promise.all([
               fetch('/api/user/me', {
@@ -99,6 +129,7 @@ export default function Page() {
         console.error('Error loading self from /api/user/me', err);
       }
 
+      setUsingSampleData(false);
       setUserSelf({
         id: selfId,
         username: selfUsername,
@@ -190,6 +221,12 @@ export default function Page() {
               Open Network Graph Mode
             </Link>
           </div>
+          {usingSampleData && (
+            <p className="mb-3 text-xs text-gray-600">
+              Showing sample matches for guest access. Log in to see real
+              connections.
+            </p>
+          )}
           {/* Card grid: self + matches */}
           <div className="w-full flex justify-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-5xl justify-center">
