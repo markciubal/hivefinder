@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Header from '../components/header/Header';
+import InterestsSelector from '../components/interests/InterestsSelector';
 
 export default function SignUpPage() {
   const [username, setUsername] = useState('');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [confirm,  setConfirm]  = useState('');
+  const [selectedInterests, setSelectedInterests] = useState([]);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
   const [msg,      setMsg]      = useState('');
@@ -37,7 +39,12 @@ export default function SignUpPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+          interests: selectedInterests,
+        }),
       });
 
       const data = await res.json();
@@ -111,6 +118,15 @@ export default function SignUpPage() {
               placeholder="Match password"
             />
           </div>
+
+          <InterestsSelector
+            selectedInterests={selectedInterests}
+            setSelectedInterests={setSelectedInterests}
+            title="Interests (Optional)"
+            description="These are used in Friend Finder to match you with other students."
+            helperText="Click to add or remove interests:"
+            defaultOpen
+          />
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
           {msg &&   <p className="text-green-700 text-sm">{msg}</p>}

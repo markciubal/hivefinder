@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import interestsList from '../../utilities/interests.json';
 import Header from '../components/header/Header.jsx';
+import InterestsSelector from '../components/interests/InterestsSelector.jsx';
 export default function AccountPage() {
   const [username, setUsername] = useState('');
   const [firstName, setFirst] = useState('');
@@ -11,7 +11,6 @@ export default function AccountPage() {
   const [about,     setAbout] = useState('');
 
   const [selectedInterests, setSelectedInterests] = useState([]);
-  const [interestsOpen, setInterestsOpen] = useState(false);
 
   const [msg,       setMsg]   = useState('');
   const [err,       setErr]   = useState('');
@@ -114,18 +113,6 @@ export default function AccountPage() {
     }
   }
 
-  function toggleInterest(interest) {
-    setSelectedInterests((prev) =>
-      prev.includes(interest)
-        ? prev.filter((i) => i !== interest)
-        : [...prev, interest]
-    );
-  }
-
-  function removeInterest(interest) {
-    setSelectedInterests((prev) => prev.filter((i) => i !== interest));
-  }
-
   return (
     <>
       <Header />
@@ -211,78 +198,10 @@ export default function AccountPage() {
               </div>
             </section>
 
-            {/* Interests section */}
-            <section className="border border-gray-200 rounded-lg p-4 bg-neutral-100 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-black">
-                    Interests
-                  </h2>
-                  <p className="text-xs text-gray-600">
-                    These are used in Friend Finder to match you with other students.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setInterestsOpen((open) => !open)}
-                  className="rounded bg-green-800 text-white px-3 py-1 text-sm font-semibold hover:bg-green-700"
-                >
-                  {interestsOpen ? 'Close' : 'Add / Edit'}
-                </button>
-              </div>
-
-              {/* Selected interests pills */}
-              {selectedInterests.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {selectedInterests.map((interest) => (
-                    <span
-                      key={interest}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-800 text-white"
-                    >
-                      {interest}
-                      <button
-                        type="button"
-                        onClick={() => removeInterest(interest)}
-                        className="ml-1 text-white/80 hover:text-white"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Expandable interest "dropdown" that stretches width */}
-              {interestsOpen && (
-                <div className="mt-4 border-t border-gray-300 pt-3">
-                  <p className="text-xs text-gray-600 mb-2">
-                    Click to add or remove interests:
-                  </p>
-                  <div className="max-h-64 overflow-y-auto w-full rounded-lg bg-white border border-gray-200 p-3">
-                    <div className="flex flex-wrap gap-2">
-                      {interestsList.map((interest) => {
-                        const isSelected = selectedInterests.includes(interest);
-                        return (
-                          <button
-                            key={interest}
-                            type="button"
-                            onClick={() => toggleInterest(interest)}
-                            className={
-                              "px-3 py-1 rounded-full text-xs border transition " +
-                              (isSelected
-                                ? "bg-green-800 text-white border-green-800"
-                                : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100")
-                            }
-                          >
-                            {interest}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </section>
+            <InterestsSelector
+              selectedInterests={selectedInterests}
+              setSelectedInterests={setSelectedInterests}
+            />
 
             {err && <p className="text-red-600 text-sm">{err}</p>}
             {msg && <p className="text-green-700 text-sm">{msg}</p>}
@@ -302,3 +221,4 @@ export default function AccountPage() {
     </>
   );
 }
+

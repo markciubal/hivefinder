@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(req) {
   try {
-    const { username, email, password } = await req.json();
+    const { username, email, password, interests } = await req.json();
 
     // basic checks
     if (!username || !email || !password) {
@@ -29,12 +29,19 @@ export async function POST(req) {
     // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const normalizedInterests = Array.isArray(interests)
+      ? interests
+          .map((value) => String(value).trim())
+          .filter(Boolean)
+      : [];
+
     // create user in Prisma (MongoDB collection: User)
     const user = await prisma.user.create({
       data: {
         username,
         email,
         password: hashedPassword,
+        interests: normalizedInterests,
         role: 'MEMBER'  // optional, but ensures consistency
       }
     });

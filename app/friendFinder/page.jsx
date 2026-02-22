@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import Header from "../components/header/Header.jsx";
+import InterestsSelector from "../components/interests/InterestsSelector.jsx";
 import {
   friendFinderSampleFriends,
   friendFinderSampleSelf,
@@ -14,40 +15,107 @@ export default function Page() {
 
   const [organizedFriends, setOrganizedFriends] = useState([]);
   const [filteredFriends, setFilteredFriends] = useState([]);
-  const [matchedStatistics, setMatchedStatistics] = useState({ interests: [], memberships: [] });
-
   const [otherInterestsModal, setOtherInterestsModal] = useState(null);
   const [otherMembershipsModal, setOtherMembershipsModal] = useState(null);
+
+  const [selectedFilters, setSelectedFilters] = useState([]);
+  const [filterMode, setFilterMode] = useState("or");
+  const [editInterests, setEditInterests] = useState([]);
+  const [savingInterests, setSavingInterests] = useState(false);
+  const [interestsMessage, setInterestsMessage] = useState("");
+  const [interestsError, setInterestsError] = useState("");
 
   const sharedStyle = "text-xxs m-[2px] px-1 py-1 bg-neutral-900 text-white rounded-md hover:bg-neutral-700! inline-block";
   const normalStyle = "text-xxs m-[2px] px-1 py-1 bg-neutral-300 text-black rounded-md hover:bg-neutral-200 inline-block";
   const counterStyle = "mx-1 inline-flex items-center justify-center w-3 h-3 p-2 text-xxxs font-semibold text-neutral-800 bg-[#f4c201] rounded-full position-relative top-0 left-0";
   const starStyle = "w-3 h-3 mx-0 shrink-0 text-yellow-400 transition peer-checked:scale-130 peer-checked:rotate-360 peer-checked:fill-yellow-400 peer-checked:stroke-yellow-400 fill-transparent stroke-gray-300 stroke-[3] cursor-pointer";
 
-  const handleFilterChange = () => {
-    const selectedSimilarities = document.querySelectorAll('input[name="checkbox"]:checked');
-    const selectedSimilaritiesArray = Array.from(selectedSimilarities).map(input => input.value);
+  const toggleFilterValue = (value) => {
+    setSelectedFilters((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
 
-    if (selectedSimilaritiesArray.length > 0) {
-      setFilteredFriends(
-        document.querySelector('select[name="andor"]').value === "and"
-          ? organizedFriends.filter((user) =>
-              selectedSimilaritiesArray.every(
-                (sim) =>
-                  user.sharedInterests.includes(sim) ||
-                  user.sharedClubs.some((club) => club.club === sim)
-              )
-            )
-          : organizedFriends.filter((user) =>
-              selectedSimilaritiesArray.some(
-                (sim) =>
-                  user.sharedInterests.includes(sim) ||
-                  user.sharedClubs.some((club) => club.club === sim)
-              )
-            )
-      );
-    } else {
-      setFilteredFriends(organizedFriends);
+  const doesUserMatchValue = (user, value) =>
+    user.sharedInterests?.includes(value) ||
+    user.sharedClubs?.some((club) => club.club === value);
+
+  const matchesFilterSet = (user, values, mode) => {
+    if (!values || values.length === 0) return true;
+    return mode === "and"
+      ? values.every((value) => doesUserMatchValue(user, value))
+      : values.some((value) => doesUserMatchValue(user, value));
+  };
+
+  const getMatchesForFilters = (values, mode) => {
+    if (!values || values.length === 0) return organizedFriends;
+    return organizedFriends.filter((user) => matchesFilterSet(user, values, mode));
+  };
+
+  const getCountForValue = (value) => {
+    const nextFilters = selectedFilters.includes(value)
+      ? selectedFilters
+      : [...selectedFilters, value];
+    return getMatchesForFilters(nextFilters, filterMode).length;
+  };
+
+  const updateSelectedFiltersAfterInterests = (nextInterests, nextMemberships) => {
+    const allowed = new Set([
+      ...(Array.isArray(nextInterests) ? nextInterests : []),
+      ...(Array.isArray(nextMemberships) ? nextMemberships.map((m) => m.club) : []),
+    ]);
+    setSelectedFilters((prev) => prev.filter((value) => allowed.has(value)));
+  };
+
+  const handleSaveInterests = async () => {
+    setInterestsError("");
+    setInterestsMessage("");
+
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      setInterestsError("Log in to update interests.");
+      return;
+    }
+
+    setSavingInterests(true);
+    try {
+      const res = await fetch('/api/user/me', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ interests: editInterests }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Failed to update interests (status ${res.status})`);
+      }
+
+      const updated = await res.json();
+      const nextInterests = Array.isArray(updated?.interests)
+        ? updated.interests
+        : editInterests;
+
+      setUserSelf((prev) => {
+        const next = {
+          ...prev,
+          interests: nextInterests,
+        };
+        updateSelectedFiltersAfterInterests(
+          nextInterests,
+          next.memberships || []
+        );
+        return next;
+      });
+      setInterestsMessage("Interests updated.");
+    } catch (err) {
+      console.error("Failed to update interests", err);
+      setInterestsError(err.message || "Failed to update interests.");
+    } finally {
+      setSavingInterests(false);
     }
   };
 
@@ -154,8 +222,6 @@ export default function Page() {
   useEffect(() => {
     if (!userSelf?.interests || allFriends.length === 0) return;
 
-    const matchedStats = { interests: [], memberships: [] };
-
     const matches = allFriends
       .filter(user => user.id !== userSelf.id)
       .map((user) => {
@@ -166,25 +232,10 @@ export default function Page() {
           userSelf.memberships.some((c) => c.club === club.club)
         );
 
-        // update interest counts
-        matchedInterests.forEach((name) => {
-          const node = matchedStats.interests.find((x) => x.name === name);
-          if (node) node.count += 1;
-          else matchedStats.interests.push({ name, count: 1 });
-        });
-
-        // update club counts
-        matchedClubs.forEach(({ club }) => {
-          const node = matchedStats.memberships.find((x) => x.club === club);
-          if (node) node.count += 1;
-          else matchedStats.memberships.push({ club, count: 1 });
-        });
-
         return { ...user, matchedInterests, matchedClubs };
       })
       .filter((u) => u.matchedInterests.length > 0 || u.matchedClubs.length > 0);
 
-    setMatchedStatistics(matchedStats);
     const organized = matches
       .map((user) => {
         const sharedInterests = (user.interests || []).filter((interest) =>
@@ -202,8 +253,15 @@ export default function Page() {
       );
 
     setOrganizedFriends(organized);
-    setFilteredFriends(organized);
   }, [userSelf, allFriends]);
+
+  useEffect(() => {
+    setEditInterests(Array.isArray(userSelf?.interests) ? userSelf.interests : []);
+  }, [userSelf]);
+
+  useEffect(() => {
+    setFilteredFriends(getMatchesForFilters(selectedFilters, filterMode));
+  }, [organizedFriends, selectedFilters, filterMode]);
 
   return (
     <>
@@ -231,7 +289,7 @@ export default function Page() {
           <div className="w-full flex justify-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-5xl justify-center">
               <div className="text-center col-span-full">
-                {userSelf?.interests && matchedStatistics && (
+                {userSelf?.interests && (
                   <div
                     key={"interests_" + userSelf.id}
                     className="col-span-full border-b border-gray-300 p-4 rounded-lg shadow-sm bg-neutral-100 text-center"
@@ -242,23 +300,51 @@ export default function Page() {
                     <h2 className="text-sm font-semibold text-black m-2">
                       Filter by Common Interests
                     </h2>
+                    <details className="mb-3 rounded border border-gray-200 bg-white p-3 text-left">
+                      <summary className="cursor-pointer text-sm font-semibold text-black">
+                        Update Interests
+                      </summary>
+                      <div className="mt-3">
+                        <InterestsSelector
+                          selectedInterests={editInterests}
+                          setSelectedInterests={setEditInterests}
+                          title="Your Interests"
+                          description="Update your interests to improve friend matching."
+                          helperText="Click to add or remove interests:"
+                          defaultOpen
+                        />
+                        {interestsError && (
+                          <p className="mt-2 text-xs text-red-600">
+                            {interestsError}
+                          </p>
+                        )}
+                        {interestsMessage && (
+                          <p className="mt-2 text-xs text-green-700">
+                            {interestsMessage}
+                          </p>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleSaveInterests}
+                          disabled={savingInterests}
+                          className="mt-3 rounded bg-green-800 text-white px-4 py-2 text-xs font-semibold disabled:opacity-60"
+                        >
+                          {savingInterests ? "Updating..." : "Update Interests"}
+                        </button>
+                      </div>
+                    </details>
                     {userSelf.interests.map((interest, index) => {
-                      const isShared = matchedStatistics.interests.some(
-                        (i) => i.name === interest
-                      );
-                      const style = isShared ? sharedStyle : normalStyle;
-                      const count =
-                        matchedStatistics.interests.find((i) => i.name === interest)
-                          ?.count || 0;
+                      const count = getCountForValue(interest);
+                      const style = count > 0 ? sharedStyle : normalStyle;
 
                       return (
                         <span key={index} className={style}>
                           <label className="flex items-center">
                             <input
-                              name="checkbox"
                               type="checkbox"
                               value={interest}
-                              onChange={handleFilterChange}
+                              checked={selectedFilters.includes(interest)}
+                              onChange={() => toggleFilterValue(interest)}
                               className="peer hidden"
                             />
                             <svg
@@ -281,7 +367,8 @@ export default function Page() {
                           Filter by Common Memberships
                         </h2>
                         {userSelf.memberships.map((membership) => {
-                          const style = sharedStyle;
+                          const count = getCountForValue(membership.club);
+                          const style = count > 0 ? sharedStyle : normalStyle;
                           return (
                             <span
                               key={"user_" + userSelf.id + "_" + membership.club}
@@ -289,10 +376,10 @@ export default function Page() {
                             >
                               <label className="flex items-center">
                                 <input
-                                  name="checkbox"
                                   type="checkbox"
                                   value={membership.club}
-                                  onChange={handleFilterChange}
+                                  checked={selectedFilters.includes(membership.club)}
+                                  onChange={() => toggleFilterValue(membership.club)}
                                   className="peer hidden"
                                 />
                                 <svg
@@ -303,9 +390,7 @@ export default function Page() {
                                   <path d="M12 2l3.1 6.3L22 9.3l-5 4.9L18.2 21 12 17.8 5.8 21 7 14.2 2 9.3l6.9-1L12 2z" />
                                 </svg>
                                 <span className={counterStyle}>
-                                  {matchedStatistics.memberships.find(
-                                    (i) => i.club === membership.club
-                                  )?.count || 0}
+                                  {count}
                                 </span>
                                 {membership.club}
                               </label>
@@ -316,7 +401,8 @@ export default function Page() {
                         <div className="flex pt-4 justify-center">
                           <label className="mr-2 mt-2">Filter by:</label>
                           <select
-                            onChange={handleFilterChange}
+                            value={filterMode}
+                            onChange={(e) => setFilterMode(e.target.value)}
                             id="andor"
                             name="andor"
                             className="border justify-center text-black border-gray-300 rounded-md p-2 mb-4 w-25"
