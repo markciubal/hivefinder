@@ -17,6 +17,7 @@ export default function Page() {
   const [filteredFriends, setFilteredFriends] = useState([]);
   const [otherInterestsModal, setOtherInterestsModal] = useState(null);
   const [otherMembershipsModal, setOtherMembershipsModal] = useState(null);
+  const [contactMethodsModal, setContactMethodsModal] = useState(null);
 
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [filterMode, setFilterMode] = useState("or");
@@ -24,6 +25,10 @@ export default function Page() {
   const [savingInterests, setSavingInterests] = useState(false);
   const [interestsMessage, setInterestsMessage] = useState("");
   const [interestsError, setInterestsError] = useState("");
+  const [addingFriendId, setAddingFriendId] = useState(null);
+  const [friendActionError, setFriendActionError] = useState("");
+  const [respondingFriendId, setRespondingFriendId] = useState(null);
+  const [respondingFriendAction, setRespondingFriendAction] = useState("");
 
   const sharedStyle = "text-xxs m-[2px] px-1 py-1 bg-neutral-900 text-white rounded-md hover:bg-neutral-700! inline-block";
   const normalStyle = "text-xxs m-[2px] px-1 py-1 bg-neutral-300 text-black rounded-md hover:bg-neutral-200 inline-block";
@@ -57,6 +62,40 @@ export default function Page() {
       ? selectedFilters
       : [...selectedFilters, value];
     return getMatchesForFilters(nextFilters, filterMode).length;
+  };
+
+  const contactTypeLabel = (method) => {
+    if (!method) return "";
+    if (method.type === "EMAIL") return "Email";
+    if (method.type === "PHONE") return "Phone";
+    if (method.type === "DISCORD") return "Discord";
+    if (method.type === "OTHER") return method.label || "Other";
+    return "Contact";
+  };
+
+  const getPreferredContact = (methods) => {
+    if (!Array.isArray(methods) || methods.length === 0) return null;
+    const preferred = methods.find((m) => m.preferred);
+    return preferred || methods[0];
+  };
+
+  const fetchFriends = async (tokenOverride) => {
+    const token =
+      tokenOverride ??
+      (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+    if (!token) return;
+
+    try {
+      const res = await fetch('/api/friends', {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setAllFriends(data);
+    } catch (err) {
+      console.error('Failed to refresh friends', err);
+    }
   };
 
   const updateSelectedFiltersAfterInterests = (nextInterests, nextMemberships) => {
@@ -138,6 +177,7 @@ export default function Page() {
         "guest";
       let selfInterests = [];
       let selfMemberships = [];
+      let selfContactMethods = [];
 
       if (isGuest) {
         setUsingSampleData(true);
@@ -181,6 +221,9 @@ export default function Page() {
               selfId = me.id || selfId;
               selfUsername = me.username || me.email?.split('@')[0] || selfUsername;
               selfInterests = Array.isArray(me.interests) ? me.interests : [];
+              selfContactMethods = Array.isArray(me.contactMethods)
+                ? me.contactMethods
+                : [];
             }
 
             if (myClubsRes.ok) {
@@ -203,14 +246,14 @@ export default function Page() {
         username: selfUsername,
         interests: selfInterests,
         memberships: selfMemberships,
+        contactMethods: selfContactMethods,
       });
 
       // Load other users from API
       try {
-        const res = await fetch('/api/friends');
-        if (!res.ok) throw new Error('Failed to load friends');
-        const data = await res.json();
-        setAllFriends(data);
+        if (token) {
+          await fetchFriends(token);
+        }
       } catch (err) {
         console.error(err);
       }
@@ -218,6 +261,17 @@ export default function Page() {
 
     init();
   }, []);
+
+  useEffect(() => {
+    if (usingSampleData) return undefined;
+
+    const pollFriends = async () => {
+      await fetchFriends();
+    };
+
+    const intervalId = setInterval(pollFriends, 15000);
+    return () => clearInterval(intervalId);
+  }, [usingSampleData]);
 
   useEffect(() => {
     if (!userSelf?.interests || allFriends.length === 0) return;
@@ -262,6 +316,76 @@ export default function Page() {
   useEffect(() => {
     setFilteredFriends(getMatchesForFilters(selectedFilters, filterMode));
   }, [organizedFriends, selectedFilters, filterMode]);
+
+  const handleAddFriend = async (friendId) => {
+    setFriendActionError("");
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token || usingSampleData) {
+      setFriendActionError("Log in to add friends.");
+      return;
+    }
+
+    setAddingFriendId(friendId);
+    try {
+      const res = await fetch('/api/friends', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ friendId }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Failed to add friend (status ${res.status})`);
+      }
+
+      await fetchFriends(token);
+    } catch (err) {
+      console.error("Failed to add friend", err);
+      setFriendActionError(err.message || "Failed to add friend.");
+    } finally {
+      setAddingFriendId(null);
+    }
+  };
+
+  const handleRespondToFriend = async (friendId, action) => {
+    setFriendActionError("");
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token || usingSampleData) {
+      setFriendActionError("Log in to manage friend requests.");
+      return;
+    }
+
+    setRespondingFriendId(friendId);
+    setRespondingFriendAction(action);
+    try {
+      const res = await fetch('/api/friends', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ friendId, action }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Failed to update request (status ${res.status})`);
+      }
+
+      await fetchFriends(token);
+    } catch (err) {
+      console.error("Failed to update friend request", err);
+      setFriendActionError(err.message || "Failed to update request.");
+    } finally {
+      setRespondingFriendId(null);
+      setRespondingFriendAction("");
+    }
+  };
 
   return (
     <>
@@ -416,6 +540,11 @@ export default function Page() {
                           <p className="text-black">
                             We found <b>{filteredFriends.length}</b> friends:
                           </p>
+                          {friendActionError && (
+                            <p className="mt-2 text-xs text-red-600">
+                              {friendActionError}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
@@ -439,6 +568,16 @@ export default function Page() {
                   const otherMemberships = (user.memberships || []).filter(
                     (membership) => !user.sharedClubs?.includes(membership)
                   );
+                  const friendStatus =
+                    user.friendStatus || (user.isFriend ? "accepted" : "none");
+                  const isIncoming = friendStatus === "incoming";
+                  const isOutgoing = friendStatus === "outgoing";
+                  const isAccepted = friendStatus === "accepted";
+                  const preferredContact = getPreferredContact(user.contactMethods);
+                  const hasContacts =
+                    Array.isArray(user.contactMethods) &&
+                    user.contactMethods.length > 0;
+                  const canViewContactInfo = isAccepted && hasContacts;
 
                   return (
                     <div
@@ -448,6 +587,11 @@ export default function Page() {
                       <h3 className="text-md font-semibold text-black">
                         {user.username}
                       </h3>
+                      <p className="text-xs text-gray-600">
+                        {isAccepted && user.about
+                          ? user.about
+                          : "About info available to approved friends."}
+                      </p>
 
                       {/* Interests */}
                       <h4 className="text-sm text-gray-600">Interests</h4>
@@ -508,11 +652,84 @@ export default function Page() {
                           More clubs
                         </button>
                       )}
-                      <button
-                        className="mt-2 inline-flex justify-center items-center gap-1 rounded-md border border-gray-300 bg-green-900 px-2 py-1 text-[0.7rem] font-medium text-white shadow-sm hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:ring-offset-gray-100"
-                      >
-                        Message {user.username}
-                      </button>
+
+                      {isAccepted && preferredContact && (
+                        <p className="mt-3 text-xs text-gray-600">
+                          Preferred contact:{" "}
+                          <span className="font-semibold">
+                            {contactTypeLabel(preferredContact)}
+                          </span>{" "}
+                          {preferredContact.value}
+                        </p>
+                      )}
+
+                      {canViewContactInfo && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setContactMethodsModal({
+                              username: user.username,
+                              contactMethods: user.contactMethods,
+                            })
+                          }
+                          className="mt-2 inline-flex justify-center items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-[0.7rem] font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:ring-offset-gray-100"
+                        >
+                          View Contact Info
+                        </button>
+                      )}
+
+                      {isAccepted ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="mt-2 inline-flex justify-center items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-[0.7rem] font-medium text-gray-700 shadow-sm opacity-60"
+                        >
+                          Friends
+                        </button>
+                      ) : isIncoming ? (
+                        <div className="mt-2 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleRespondToFriend(user.id, "accept")}
+                            disabled={respondingFriendId === user.id}
+                            className="inline-flex justify-center items-center gap-1 rounded-md border border-green-700 bg-green-800 px-2 py-1 text-[0.7rem] font-medium text-white shadow-sm hover:bg-green-700 disabled:opacity-60"
+                          >
+                            {respondingFriendId === user.id &&
+                            respondingFriendAction === "accept"
+                              ? "Accepting..."
+                              : "Accept"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRespondToFriend(user.id, "reject")}
+                            disabled={respondingFriendId === user.id}
+                            className="inline-flex justify-center items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-[0.7rem] font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-60"
+                          >
+                            {respondingFriendId === user.id &&
+                            respondingFriendAction === "reject"
+                              ? "Declining..."
+                              : "Decline"}
+                          </button>
+                        </div>
+                      ) : isOutgoing ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="mt-2 inline-flex justify-center items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-[0.7rem] font-medium text-gray-700 shadow-sm opacity-60"
+                        >
+                          Request Sent
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleAddFriend(user.id)}
+                          disabled={addingFriendId === user.id}
+                          className="mt-2 inline-flex justify-center items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-[0.7rem] font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-60"
+                        >
+                          {addingFriendId === user.id ? "Adding..." : "Add Friend"}
+                        </button>
+                      )}
+
                     </div>
                   );
                 })}
@@ -605,7 +822,52 @@ export default function Page() {
             </div>
           </div>
         )}
+        {contactMethodsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+            <div className="max-w-md w-full mx-4 rounded-lg bg-white shadow-xl">
+              <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Contact methods for {contactMethodsModal.username}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setContactMethodsModal(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <span className="sr-only">Close</span>
+                  x
+                </button>
+              </div>
+
+              <div className="px-4 py-3 space-y-2">
+                {contactMethodsModal.contactMethods.map((method, idx) => (
+                  <div
+                    key={`${method.type}-${method.value}-${idx}`}
+                    className="flex items-center justify-between rounded border border-gray-200 px-3 py-2 text-xs"
+                  >
+                    <span className="font-semibold">
+                      {contactTypeLabel(method)}
+                      {method.preferred ? " (Preferred)" : ""}
+                    </span>
+                    <span className="text-gray-700">{method.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end border-t border-gray-200 px-4 py-2">
+                <button
+                  type="button"
+                  onClick={() => setContactMethodsModal(null)}
+                  className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
 }
+

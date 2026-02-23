@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(req) {
   try {
-    const { username, email, password, interests } = await req.json();
+    const { username, email, password, interests, contactMethods } = await req.json();
 
     // basic checks
     if (!username || !email || !password) {
@@ -35,6 +35,54 @@ export async function POST(req) {
           .filter(Boolean)
       : [];
 
+    const normalizeContactMethods = (rawMethods = []) => {
+      if (!Array.isArray(rawMethods)) return [];
+
+      const allowed = new Set(["EMAIL", "PHONE", "DISCORD", "OTHER"]);
+      const normalized = [];
+      const seen = new Set();
+      let preferredIndex = -1;
+
+      for (const raw of rawMethods) {
+        if (!raw) continue;
+        const type = String(raw.type || "").trim().toUpperCase();
+        if (!allowed.has(type)) continue;
+
+        const value = String(raw.value || "").trim();
+        if (!value) continue;
+
+        const label =
+          type === "OTHER" ? String(raw.label || "").trim() : null;
+        if (type === "OTHER" && !label) continue;
+
+        const visible = raw.visible === false ? false : true;
+        const preferred = Boolean(raw.preferred);
+        const key = `${type}:${value.toLowerCase()}:${label || ""}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        if (preferred && preferredIndex === -1) {
+          preferredIndex = normalized.length;
+        }
+
+        normalized.push({
+          type,
+          value,
+          label: label || null,
+          visible,
+          preferred: false,
+        });
+      }
+
+      if (preferredIndex >= 0 && normalized[preferredIndex]) {
+        normalized[preferredIndex].preferred = true;
+      }
+
+      return normalized;
+    };
+
+    const normalizedContactMethods = normalizeContactMethods(contactMethods);
+
     // create user in Prisma (MongoDB collection: User)
     const user = await prisma.user.create({
       data: {
@@ -42,6 +90,9 @@ export async function POST(req) {
         email,
         password: hashedPassword,
         interests: normalizedInterests,
+        ...(normalizedContactMethods.length
+          ? { contactMethods: { createMany: { data: normalizedContactMethods } } }
+          : {}),
         role: 'MEMBER'  // optional, but ensures consistency
       }
     });

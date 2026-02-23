@@ -13,6 +13,19 @@ enum Role {
   MEMBER
 }
 
+enum ContactType {
+  EMAIL
+  PHONE
+  DISCORD
+  OTHER
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 enum InterestSubmissionStatus {
   APPROVED
   REJECTED
@@ -41,9 +54,29 @@ model User {
   memberships Member[]       // clubs they belong to
   moderations ClubModerator[] // clubs they moderate
   interestSubmissions InterestSubmission[]
+  contactMethods ContactMethod[]
+  sentFriendRequests Friendship[] @relation("FriendRequestSender")
+  receivedFriendRequests Friendship[] @relation("FriendRequestRecipient")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ContactMethod {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String      @db.ObjectId
+  type      ContactType
+  value     String
+  label     String?
+  preferred Boolean     @default(false)
+  visible   Boolean     @default(true)
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model InterestSubmission {
@@ -101,4 +134,20 @@ model ClubModerator {
   club Club @relation(fields: [clubId], references: [id])
 
   assignedAt DateTime @default(now())
+}
+
+model Friendship {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  requesterId String @db.ObjectId
+  recipientId String @db.ObjectId
+  status FriendshipStatus @default(PENDING)
+
+  requester User @relation("FriendRequestSender", fields: [requesterId], references: [id])
+  recipient User @relation("FriendRequestRecipient", fields: [recipientId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([requesterId, recipientId])
+  @@index([recipientId])
 }
