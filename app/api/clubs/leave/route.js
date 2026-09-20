@@ -1,40 +1,57 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ObjectId } from "mongodb";
-import jwt from "jsonwebtoken";
+import { isObjectId, requireUser } from "@/lib/apiAuth";
 
+/**
+ * POST /api/clubs/leave?clubId=...
+ *
+ * The last officer cannot leave: nothing else in the app can appoint a new
+ * one, so the club would be stranded with nobody able to post events or
+ * manage members. They have to promote someone first.
+ */
 export async function POST(req) {
-
-  const { searchParams } = new URL(req.url);
-  const clubId = searchParams.get("clubId");
-
-  const auth = req.headers.get("authorization") || "";
-  const token = auth.replace("Bearer ", "");
-
-  if (!token) return NextResponse.json({ error: "no token" });
-
-  let decoded;
   try {
-    decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET);
-  } catch {
-    return NextResponse.json({ error: "bad token" });
-  }
+    const { searchParams } = new URL(req.url);
+    const clubId = searchParams.get("clubId");
 
-  const userId = decoded.id;
+    if (!isObjectId(clubId)) {
+      return NextResponse.json({ error: "Unknown club." }, { status: 400 });
+    }
 
-  try {
-    const result = await prisma.member.deleteMany({
-      where: {
-        userId: new ObjectId(userId),
-        clubId: new ObjectId(clubId)
-      }
+    const auth = requireUser(req);
+    if (auth.error) return auth.error;
+
+    const membership = await prisma.member.findFirst({
+      where: { userId: auth.userId, clubId },
     });
 
-    console.log("DELETE RESULT:", result);
-    return NextResponse.json({ left: true });
+    if (!membership) {
+      return NextResponse.json({ left: true, already: true });
+    }
 
+    if (membership.role === "OFFICER") {
+      const officerCount = await prisma.member.count({
+        where: { clubId, role: "OFFICER" },
+      });
+      if (officerCount <= 1) {
+        return NextResponse.json(
+          {
+            error:
+              "You are the only officer. Promote another member before leaving.",
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    // deleteMany also cleans up any duplicate rows the old join route created.
+    await prisma.member.deleteMany({
+      where: { userId: auth.userId, clubId },
+    });
+
+    return NextResponse.json({ left: true });
   } catch (err) {
-    console.log("DELETE ERROR:", err);
-    return NextResponse.json({ error: err.message });
+    console.error("LEAVE ERROR:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

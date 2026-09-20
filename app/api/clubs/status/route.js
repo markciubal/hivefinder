@@ -1,42 +1,34 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { isObjectId, requireUser } from "@/lib/apiAuth";
 
+/**
+ * GET /api/clubs/status?clubId=...
+ *
+ * Membership state for the join/leave button. Signed-out callers get
+ * { member: false } rather than a 401, since "not a member" is exactly what
+ * the button should show them.
+ */
 export async function GET(req) {
-  console.log("STATUS ROUTE EXECUTING");
-
-  // 🔥 Extract search params correctly
-  const { searchParams } = new URL(req.url);
-  const clubId = searchParams.get("clubId");
-
-  console.log("CLUB ID:", clubId);
-
-  if (!clubId) {
-    return NextResponse.json({ member: false });
-  }
-
-  const authHeader = req.headers.get("authorization") || "";
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7)
-    : null;
-
-  if (!token) {
-    return NextResponse.json({ member: false });
-  }
-
-  let decoded;
   try {
-    decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET);
-  } catch {
-    return NextResponse.json({ member: false });
+    const { searchParams } = new URL(req.url);
+    const clubId = searchParams.get("clubId");
+
+    if (!isObjectId(clubId)) {
+      return NextResponse.json({ member: false, role: null });
+    }
+
+    const auth = requireUser(req);
+    if (auth.error) return NextResponse.json({ member: false, role: null });
+
+    const found = await prisma.member.findFirst({
+      where: { userId: auth.userId, clubId },
+      select: { role: true },
+    });
+
+    return NextResponse.json({ member: Boolean(found), role: found?.role || null });
+  } catch (err) {
+    console.error("STATUS ERROR:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-
-  const userId = decoded.id;
-  console.log("USER ID:", userId);
-
-  const found = await prisma.member.findFirst({
-    where: { userId, clubId }
-  });
-
-  return NextResponse.json({ member: !!found });
 }

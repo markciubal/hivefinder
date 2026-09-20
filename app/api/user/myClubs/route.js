@@ -1,27 +1,30 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-import { ObjectId } from "mongodb";
+import { requireUser } from "@/lib/apiAuth";
 
+/**
+ * GET /api/user/myClubs - every club and hive the caller belongs to.
+ *
+ * Each row carries `role`, which /createEvent uses to work out which clubs the
+ * person may post for. Officers first, then newest membership.
+ */
 export async function GET(req) {
-  const authHeader = req.headers.get("authorization") || "";
-  const token = authHeader.replace("Bearer ", "");
-
-  if (!token) return NextResponse.json([]);
-
-  let decoded;
   try {
-    decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET);
-  } catch {
-    return NextResponse.json([]);
+    const auth = requireUser(req);
+    // This route used to swallow auth failures and return [], which rendered
+    // as "you have not joined anything" for an expired session. Say what
+    // actually happened so the client can react.
+    if (auth.error) return auth.error;
+
+    const memberships = await prisma.member.findMany({
+      where: { userId: auth.userId },
+      include: { club: true },
+      orderBy: [{ role: "asc" }, { joinedAt: "desc" }],
+    });
+
+    return NextResponse.json(memberships);
+  } catch (err) {
+    console.error("MY CLUBS ERROR:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-
-  const userId = decoded.id;
-
-  const memberships = await prisma.member.findMany({
-    where: { userId: new ObjectId(userId) },
-    include: { club: true }
-  });
-
-  return NextResponse.json(memberships);
 }

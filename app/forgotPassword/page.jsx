@@ -1,51 +1,58 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { api } from '../lib/api';
+import { useState } from "react";
+import Link from "next/link";
+import PageShell from "../components/layout/PageShell";
+import { api } from "../lib/api";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('');
-  const [err, setErr] = useState('');
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
 
   async function onSubmit(e) {
     e.preventDefault();
-    setMsg('');
-    setErr('');
+    setMsg("");
+    setErr("");
+
     if (!email) {
-      setErr('Enter your email');
+      setErr("Enter your email");
       return;
     }
+
     setLoading(true);
     try {
-      await api('/api/auth/forgot-password', {
-        method: 'POST',
-        body: { email }
-      });
-      // No console text. Tell the user to check their inbox.
-      setMsg('If the email exists, we sent a reset link. Check your inbox.');
-    } catch (e2) {
-      // Backend returns 200 even when user is not found. Only show hard errors.
-      setErr('Could not send email. Try again later.');
+      await api("/api/auth/forgot-password", { method: "POST", body: { email } });
+      // The endpoint returns 200 whether or not the account exists, so the
+      // message deliberately does not confirm either way.
+      setMsg("If that email has an account, we sent a reset link. Check your inbox.");
+    } catch {
+      setErr("Could not send the email. Try again later.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className="max-w-md mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-6 text-center">Forgot password</h1>
-
-      <form onSubmit={onSubmit} className="space-y-4">
+    <PageShell
+      title="Forgot password"
+      description="We will email you a link to set a new one."
+      width="sm"
+    >
+      <form onSubmit={onSubmit} className="hf-card space-y-4 p-6">
         <div>
-          <label className="block text-sm mb-1">Email</label>
+          <label className="hf-label" htmlFor="fp-email">
+            Email
+          </label>
           <input
+            id="fp-email"
             type="email"
-            className="w-full rounded border px-3 py-2"
-            placeholder="you@example.com"
+            autoComplete="email"
+            className="hf-input"
+            placeholder="you@example.edu"
             value={email}
-            onChange={(e)=>setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
@@ -55,11 +62,17 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded bg-green-800 text-white py-2 font-semibold disabled:opacity-60"
+          className="hf-btn hf-btn-primary w-full"
         >
-          {loading ? 'Sending…' : 'Send reset link'}
+          {loading ? "Sending…" : "Send reset link"}
         </button>
+
+        <p className="pt-2 text-center text-sm text-gray-600">
+          <Link href="/login" className="underline hover:text-black">
+            Back to log in
+          </Link>
+        </p>
       </form>
-    </main>
+    </PageShell>
   );
 }
