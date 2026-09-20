@@ -6,6 +6,8 @@ import PageShell from "../components/layout/PageShell";
 import RequireAuth, { DemoBanner } from "../components/auth/RequireAuth";
 import { useSignInPrompt } from "../components/auth/SignInPrompt";
 import { useAuth } from "../components/auth/AuthProvider";
+import ThemePicker from "../components/theme/ThemePicker";
+import LocationSharing from "../components/events/LocationSharing";
 import { DEMO_PROFILE } from "../lib/demoData";
 
 /**
@@ -207,6 +209,22 @@ function AccountDemo() {
     >
       <DemoBanner what="the profile editor" />
       <AccountForm profile={DEMO_PROFILE} demo onDemoAction={promptSignIn} />
+
+      <section className="hf-card mt-6 p-6">
+        <h2 className="text-lg font-bold text-black">Colours</h2>
+        <p className="mt-1 text-sm text-gray-600">
+          Signed-in students can recolour the whole app, or pick their own
+          accent. Every option is contrast-checked so the text stays readable.
+        </p>
+        <button
+          type="button"
+          onClick={() => promptSignIn("choosing a colour theme")}
+          className="hf-btn hf-btn-primary mt-4"
+        >
+          Choose a theme
+        </button>
+      </section>
+
       {prompt}
     </PageShell>
   );
@@ -282,14 +300,33 @@ function AccountReal() {
           // Keyed on the account id: if a different profile ever loads into
           // this page, the form remounts with that profile's values instead
           // of holding the previous one.
-          <AccountForm
-            key={profile.id || profile.username}
-            profile={profile}
-            onSave={save}
-            saving={saving}
-            err={err}
-            msg={msg}
-          />
+          <>
+            <AccountForm
+              key={profile.id || profile.username}
+              profile={profile}
+              onSave={save}
+              saving={saving}
+              err={err}
+              msg={msg}
+            />
+
+            {/* Preferences save on their own, so they sit outside the
+                profile form rather than sharing its submit button. */}
+            <div className="mt-6 space-y-6">
+              <ThemePicker />
+
+              <section className="hf-card p-6">
+                <h2 className="text-lg font-bold text-black">Location sharing</h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  Event locations are hidden until you turn this on, and a
+                  location you post stays hidden from anyone who has not.
+                </p>
+                <div className="mt-4">
+                  <LocationSharing />
+                </div>
+              </section>
+            </div>
+          </>
         )
       )}
     </PageShell>

@@ -56,6 +56,13 @@ model User {
   // role with default MEMBER
   role Role @default(MEMBER)
 
+  /// Colour theme id from app/lib/themes.js, and an optional custom accent.
+  /// The accent is validated for contrast before it is stored and again
+  /// before it is applied, so an unreadable value can never render the app
+  /// unusable.
+  theme  String  @default("hive")
+  accent String?
+
   /// Opt-in to location sharing, both ways.
   /// Off by default: event locations are hidden from this user, and they are
   /// warned that a location they post is only visible to others who opted in.
