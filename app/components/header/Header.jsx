@@ -1,62 +1,170 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useAuth } from "../auth/AuthProvider";
+import { NAV, visibleItems } from "./navConfig";
+import NotificationBell from "../notifications/NotificationBell";
+
+function ChevronIcon({ open }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden="true"
+      className={`size-5 flex-none text-gray-500 transition-transform ${
+        open ? "rotate-180" : ""
+      }`}
+    >
+      <path
+        d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+        clipRule="evenodd"
+        fillRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Renders a nav destination, which may be off-site.
+ *
+ * "Browse Clubs" points at CampusGroups: Sacramento State runs the official
+ * directory and it is the only one that can enrol you, so HiveFinder links out
+ * rather than mirroring it.
+ */
+function NavLink({ item, className, children }) {
+  if (item.external) {
+    return (
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+      >
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={item.href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
+/** Small padlock shown next to links that will land on a demo preview. */
+function LockIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+      className="size-3 flex-none text-gray-400"
+    >
+      <path
+        d="M6 10V7a6 6 0 1 1 12 0v3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <rect x="4" y="10" width="16" height="10" rx="2" />
+    </svg>
+  );
+}
 
 export default function Header() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [desktopProductOpen, setDesktopProductOpen] = useState(false);
-  const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
+  const { user, status, isAuthenticated, isSuperuser, isModerator, signOut } =
+    useAuth();
+  const pathname = usePathname();
 
-  const [desktopClubOpen, setDesktopClubOpen] = useState(false);
-  const [mobileClubOpen, setMobileClubOpen] = useState(false);
+  // Menu state carries the path it was opened on. When the path changes the
+  // stored state is stale, so it reads as closed — that closes every menu on
+  // navigation without an effect that resets state after the fact.
+  const CLOSED = { path: pathname, mobile: false, desktop: null, section: null };
+  const [menuState, setMenuState] = useState(CLOSED);
+  const menus = menuState.path === pathname ? menuState : CLOSED;
 
-  const [currentUser, setCurrentUser] = useState(null);
+  const mobileOpen = menus.mobile;
+  const openDesktop = menus.desktop;
+  const openMobile = menus.section;
 
-  const productBtnRef = useRef(null);
-  const clubBtnRef = useRef(null);
-  const router = useRouter();
+  const setMobileOpen = (mobile) =>
+    setMenuState({ ...menus, path: pathname, mobile });
+  const setOpenDesktop = (desktop) =>
+    setMenuState({ ...menus, path: pathname, desktop });
+  const setOpenMobile = (section) =>
+    setMenuState({ ...menus, path: pathname, section });
 
+  const navRef = useRef(null);
+
+  // Escape closes menus; a click outside closes the desktop dropdown.
+  // These use functional updates so the listeners, registered once, never
+  // read a stale `menus`/`pathname` from their closure.
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const u = localStorage.getItem("user");
-        if (u) setCurrentUser(JSON.parse(u));
-      } catch (e) {
-        console.error("Error parsing user:", e);
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      setMenuState((prev) => ({ ...prev, desktop: null, mobile: false }));
+    };
+    const onPointerDown = (e) => {
+      if (navRef.current && !navRef.current.contains(e.target)) {
+        setMenuState((prev) => ({ ...prev, desktop: null }));
       }
-    }
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onPointerDown);
+    };
   }, []);
 
-  const handleSignOut = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-    }
-    setCurrentUser(null);
-    router.push("/");
-  };
+  // The mobile panel is a full-screen overlay; stop the page behind scrolling.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [mobileOpen]);
+
+  const isActive = (href) =>
+    href === "/" ? pathname === "/" : Boolean(pathname?.startsWith(href));
+
+  const linkBase = "text-sm/6 font-semibold transition-colors";
+  const topLink = (href) =>
+    `${linkBase} ${
+      isActive(href)
+        ? "text-[var(--hf-green)] underline underline-offset-8 decoration-2"
+        : "text-black hover:text-[var(--hf-green)]"
+    }`;
 
   return (
-    <header className="bg-white">
+    <header className="sticky top-0 z-40 border-b border-gray-200 bg-white">
       <nav
+        ref={navRef}
         aria-label="Global"
-        className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
+        className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:px-8"
       >
+        {/* Logo */}
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5">
-            <span className="sr-only">HiveFinder</span>
-            <img src="/logo.png" alt="HiveFinder logo" className="h-8 w-auto" />
+            <span className="sr-only">HiveFinder home</span>
+            <img src="/logo.png" alt="HiveFinder" className="h-8 w-auto" />
           </Link>
         </div>
 
-        <div className="flex lg:hidden">
+        {/* Mobile toggle */}
+        <div className="flex items-center gap-1 lg:hidden">
+          <NotificationBell key={user?.id || "anon"} />
           <button
             type="button"
             aria-label="Open main menu"
+            aria-expanded={mobileOpen}
             onClick={() => setMobileOpen(true)}
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-400"
+            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-600 hover:bg-gray-100"
           >
             <svg
               viewBox="0 0 24 24"
@@ -75,389 +183,108 @@ export default function Header() {
           </button>
         </div>
 
-        <div className="hidden lg:flex lg:gap-x-12">
-          <Link href="/" className="text-sm/6 font-semibold text-black">
-            Home
-          </Link>
+        {/* Desktop nav */}
+        <div className="hidden lg:flex lg:items-center lg:gap-x-10">
+          {NAV.map((entry) => {
+            if (!entry.items) {
+              return (
+                <Link
+                  key={entry.href}
+                  href={entry.href}
+                  className={topLink(entry.href)}
+                >
+                  {entry.label}
+                </Link>
+              );
+            }
 
-          <div className="relative">
-            <button
-              ref={clubBtnRef}
-              type="button"
-              aria-haspopup="menu"
-              aria-expanded={desktopClubOpen}
-              onClick={() => setDesktopClubOpen((s) => !s)}
-              onBlur={() => {
-                setTimeout(() => {
-                  const btn = clubBtnRef.current;
-                  const menu = document.getElementById("desktop-menu-club");
-                  const active = document.activeElement;
+            const items = visibleItems(entry.items, { isSuperuser, isModerator });
+            if (items.length === 0) return null;
+            const open = openDesktop === entry.id;
 
-                  if (btn && !btn.contains(active) && !menu?.contains(active)) {
-                    setDesktopClubOpen(false);
-                  }
-                }, 0);
-              }}
-              className="flex.items-center gap-x-1 text-sm/6 font-semibold text-black"
-            >
-              Club
-              <svg
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-                className="size-5 flex-none text-gray-500"
-              >
-                <path
-                  d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                  clipRule="evenodd"
-                  fillRule="evenodd"
-                />
-              </svg>
-            </button>
+            return (
+              <div key={entry.id} className="relative">
+                <button
+                  type="button"
+                  aria-haspopup="true"
+                  aria-expanded={open}
+                  onClick={() => setOpenDesktop(open ? null : entry.id)}
+                  className={`flex items-center gap-x-1 ${linkBase} text-black hover:text-[var(--hf-green)]`}
+                >
+                  {entry.label}
+                  <ChevronIcon open={open} />
+                </button>
 
-            {desktopClubOpen && (
-              <div
-                id="desktop-menu-club"
-                role="menu"
-                aria-label="Club"
-                tabIndex={-1}
-                className="absolute z-50 mt-3 w-56 overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5"
-              >
-                <div className="py-2">
-                  <Link
-                    href="/clubPage"
-                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                {open && (
+                  <div
+                    role="menu"
+                    aria-label={entry.label}
+                    className="absolute left-1/2 z-50 mt-3 w-72 -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-2 shadow-lg ring-1 ring-black/5"
                   >
-                    View Clubs
-                  </Link>
-                  <Link
-                    href="/createEvent"
-                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
-                  >
-                    Create Event
-                  </Link>
-                  <Link
-                    href="/modifyClub"
-                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
-                  >
-                    Modify Club
-                  </Link>
-                  <Link
-                    href="/createClub"
-                    className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
-                  >
-                    Create Club
-                  </Link>
-                </div>
+                    {items.map((item) => {
+                      const locked = item.auth && !isAuthenticated;
+                      return (
+                        <NavLink
+                          key={item.href}
+                          item={item}
+                          className="block rounded-lg px-3 py-2 hover:bg-gray-50"
+                        >
+                          <span className="flex items-center gap-2 text-sm font-semibold text-black">
+                            {item.label}
+                            {locked && <LockIcon />}
+                            {item.external && (
+                              <span aria-hidden="true" className="text-gray-400">
+                                &#8599;
+                              </span>
+                            )}
+                          </span>
+                          {item.description && (
+                            <span className="mt-0.5 block text-xs text-gray-500">
+                              {locked
+                                ? "Preview available without an account"
+                                : item.description}
+                            </span>
+                          )}
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-
-          <Link
-            href="/friendFinder"
-            className="text-sm/6 font-semibold text-black"
-          >
-            Friend Finder
-          </Link>
-
-          <div className="relative">
-            <button
-              ref={productBtnRef}
-              type="button"
-              aria-haspopup="menu"
-              aria-expanded={desktopProductOpen}
-              onClick={() => setDesktopProductOpen((s) => !s)}
-              onBlur={() => {
-                setTimeout(() => {
-                  const btn = productBtnRef.current;
-                  const menu = document.getElementById("desktop-menu-account");
-                  const active = document.activeElement;
-
-                  if (btn && !btn.contains(active) && !menu?.contains(active)) {
-                    setDesktopProductOpen(false);
-                  }
-                }, 0);
-              }}
-              className="flex items-center gap-x-1 text-sm/6 font-semibold text-black"
-            >
-              Account
-              <svg
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-                className="size-5 flex-none text-gray-500"
-              >
-                <path
-                  d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                  clipRule="evenodd"
-                  fillRule="evenodd"
-                />
-              </svg>
-            </button>
-
-            {desktopProductOpen && (
-              <div
-                id="desktop-menu-account"
-                role="menu"
-                aria-label="Account"
-                tabIndex={-1}
-                className="absolute z-50 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-white outline outline-1 -outline-offset-1 outline-white/10"
-              >
-              {currentUser && (
-                <>
-                <div className="p-4">
-                  {/* My Account */}
-                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                        className="size-6 text-gray-600"
-                      >
-                        <path
-                          d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M4.5 21a8.25 8.25 0 1 1 15 0"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-auto">
-                      <Link
-                        href="/account"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (
-                            typeof window !== "undefined" &&
-                            localStorage.getItem("user")
-                          ) {
-                            router.push("/account");
-                          } else {
-                            router.push("/login");
-                          }
-                        }}
-                        className="block font-semibold text-black"
-                      >
-                        My Account
-                        <span className="absolute inset-0" />
-                      </Link>
-                      <p className="mt-1 text-gray-500">Profile and settings</p>
-                    </div>
-                  </div>
-
-                  {/* My Clubs */}
-                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                        className="size-6 text-gray-600"
-                      >
-                        <path
-                          d="M4 7h16M6 12h12M8 17h8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-auto">
-                      <Link
-                        href="/myClubs"
-                        className="block font-semibold text-black"
-                      >
-                        My Clubs
-                        <span className="absolute inset-0" />
-                      </Link>
-                      <p className="mt-1 text-gray-500">
-                        Clubs joined or created
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Create Club */}
-                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                        className="size-6 text-gray-600"
-                      >
-                        <path
-                          d="M12 6v12M6 12h12"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-auto">
-                      <Link
-                        href="/createClub"
-                        className="block font-semibold text-black"
-                      >
-                        Create Club
-                        <span className="absolute inset-0" />
-                      </Link>
-                      <p className="mt-1 text-gray-500">Start a new club</p>
-                    </div>
-                  </div>
-
-                  {/* Club Admin */}
-                  <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                        className="size-6 text-gray-600"
-                      >
-                        <path
-                          d="M3 7.5h18M6 12h12M9 16.5h6"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-auto">
-                      <Link
-                        href="/clubAdmin"
-                        className="block font-semibold text-black"
-                      >
-                        Club Administration
-                        <span className="absolute inset-0" />
-                      </Link>
-                      <p className="mt-1 text-gray-500">Manage clubs</p>
-                    </div>
-                  </div>
-
-                  {!currentUser && (
-                    <>
-                      <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                        <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-200/50">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            aria-hidden="true"
-                            className="size-6 text-gray-600"
-                          >
-                            <path
-                              d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-9A2.25 2.25 0 0 0 2.25 5.25v13.5A2.25 2.25 0 0 0 4.5 21h9a2.25 2.25 0 0 0 2.25-2.25V15"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M18 12H7.5m0 0 3-3m-3 3 3 3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-auto">
-                          <Link
-                            href="/login"
-                            className="block font-semibold text-black"
-                          >
-                            Log In
-                            <span className="absolute inset-0" />
-                          </Link>
-                          <p className="mt-1 text-gray-500">
-                            Access your account
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50">
-                        <div className="flex size-11 flex-none.items-center justify-center rounded-lg bg-gray-200/50">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            aria-hidden="true"
-                            className="size-6 text-gray-600"
-                          >
-                            <path
-                              d="M12 6v12M6 12h12"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-auto">
-                          <Link
-                            href="/signUp"
-                            className="block font-semibold text-black"
-                          >
-                            Sign Up
-                            <span className="absolute inset-0" />
-                          </Link>
-                          <p className="mt-1 text-gray-500">
-                            Create your account
-                          </p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {currentUser && (
-                    <div className="p-4">
-                      <p className="text-sm font-semibold text-black mb-2">
-                        Hi {currentUser.username}!
-                      </p>
-                      <button
-                        onClick={handleSignOut}
-                        className="text-sm text-red-600 font-semibold"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  )}
-                </div>
-                </>
-              )}
-              </div>
-            )}
-          </div>
+            );
+          })}
         </div>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-4">
-          {currentUser ? (
+        {/* Desktop auth actions */}
+        <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:gap-4">
+          {status === "loading" ? (
+            <span
+              aria-hidden="true"
+              className="h-5 w-32 animate-pulse rounded bg-gray-100"
+            />
+          ) : isAuthenticated ? (
             <>
+              <NotificationBell key={user?.id || "anon"} />
               <span className="text-sm/6 font-semibold text-black">
-                Hi {currentUser.username}!
+                Hi {user.username || user.email}!
               </span>
               <button
-                onClick={handleSignOut}
-                className="text-sm/6 font-semibold text-black"
+                type="button"
+                onClick={signOut}
+                className="text-sm/6 font-semibold text-gray-600 hover:text-black"
               >
                 Sign out
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-sm/6 font-semibold text-black">
-                Log in <span aria-hidden="true">→</span>
-              </Link>
               <Link
-                href="/signUp"
-                className="text-sm/6 font-semibold text-black"
+                href="/login"
+                className="text-sm/6 font-semibold text-black hover:text-[var(--hf-green)]"
               >
+                Log in
+              </Link>
+              <Link href="/signUp" className="hf-btn hf-btn-primary">
                 Sign up
               </Link>
             </>
@@ -465,6 +292,7 @@ export default function Header() {
         </div>
       </nav>
 
+      {/* Mobile panel */}
       {mobileOpen && (
         <div className="lg:hidden">
           <div
@@ -472,17 +300,17 @@ export default function Header() {
             aria-hidden="true"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-[#c4ceb2] p-6 sm:max-w-sm sm:ring-1 sm:ring-white/10">
+          <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-200">
             <div className="flex items-center justify-between">
               <Link href="/" className="-m-1.5 p-1.5">
-                <span className="sr-only">HiveFinder</span>
-                <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
+                <span className="sr-only">HiveFinder home</span>
+                <img src="/logo.png" alt="HiveFinder" className="h-8 w-auto" />
               </Link>
               <button
                 type="button"
                 aria-label="Close menu"
                 onClick={() => setMobileOpen(false)}
-                className="-m-2.5 rounded-md p-2.5 text-gray-900"
+                className="-m-2.5 rounded-md p-2.5 text-gray-600 hover:bg-gray-100"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -501,195 +329,102 @@ export default function Header() {
               </button>
             </div>
 
-            <div className="mt-6 flow-root">
-              <div className="-my-6 divide-y divide-white/10">
-                <div className="space-y-2 py-6">
-                  <Link
-                    href="/"
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg-white/5"
-                  >
-                    Home
-                  </Link>
-
-                  <div className="-mx-3">
-                    <button
-                      type="button"
-                      aria-controls="mobile-club"
-                      aria-expanded={mobileClubOpen}
-                      onClick={() => setMobileClubOpen((s) => !s)}
-                      className="flex w-full items-center justify-between rounded-lg py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg-white/5"
-                    >
-                      Club
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden="true"
-                        className={`size-5 flex-none transition-transform ${
-                          mobileClubOpen ? "rotate-180" : ""
+            <div className="mt-6 divide-y divide-gray-200">
+              <div className="space-y-1 pb-6">
+                {NAV.map((entry) => {
+                  if (!entry.items) {
+                    return (
+                      <Link
+                        key={entry.href}
+                        href={entry.href}
+                        className={`block rounded-lg px-3 py-2 text-base font-semibold hover:bg-gray-50 ${
+                          isActive(entry.href)
+                            ? "text-[var(--hf-green)]"
+                            : "text-black"
                         }`}
                       >
-                        <path
-                          d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                          clipRule="evenodd"
-                          fillRule="evenodd"
-                        />
-                      </svg>
-                    </button>
+                        {entry.label}
+                      </Link>
+                    );
+                  }
 
-                    {mobileClubOpen && (
-                      <div
-                        id="mobile-club"
-                        className="mt-2 space-y-2"
-                        role="group"
-                        aria-label="Club"
+                  const items = visibleItems(entry.items, { isSuperuser, isModerator });
+                  if (items.length === 0) return null;
+                  const open = openMobile === entry.id;
+
+                  return (
+                    <div key={entry.id}>
+                      <button
+                        type="button"
+                        aria-controls={`mobile-${entry.id}`}
+                        aria-expanded={open}
+                        onClick={() => setOpenMobile(open ? null : entry.id)}
+                        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg-gray-50"
                       >
-                        <Link
-                          href="/clubPage"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg-white/5"
+                        {entry.label}
+                        <ChevronIcon open={open} />
+                      </button>
+
+                      {open && (
+                        <div
+                          id={`mobile-${entry.id}`}
+                          className="mt-1 space-y-1"
                         >
-                          View Clubs
-                        </Link>
-                        {currentUser && (
-                        <>
-                          <Link
-                            href="/createEvent"
-                            className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                          >
-                            Create Event
-                          </Link>
-                          <Link
-                            href="/modifyClub"
-                            className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                          >
-                            Modify Club
-                          </Link>
-                          <Link
-                            href="/createClub"
-                            className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                          >
-                            Create Club
-                          </Link>
-                        </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <Link
-                    href="/friendFinder"
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg.white/5"
-                  >
-                    Friend Finder
-                  </Link>
-
-                  <div className="-mx-3">
-                    <button
-                      type="button"
-                      aria-controls="mobile-account"
-                      aria-expanded={mobileProductsOpen}
-                      onClick={() => setMobileProductsOpen((s) => !s)}
-                      className="flex w-full.items-center justify-between rounded-lg py-2 pr-3.5 pl-3 text-base font-semibold text-black hover:bg.white/5"
-                    >
-                      Account
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden="true"
-                        className={`size-5 flex-none transition-transform ${
-                          mobileProductsOpen ? "rotate-180" : ""
-                        }`}
-                      >
-                        <path
-                          d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                          clipRule="evenodd"
-                          fillRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-
-                    {mobileProductsOpen && (
-                      <div
-                        id="mobile-account"
-                        className="mt-2 space-y-2"
-                        role="group"
-                        aria-label="Account"
-                      >
-                      {currentUser && (
-                        <>
-                        <Link
-                          href="/account"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (
-                              typeof window !== "undefined" &&
-                              localStorage.getItem("user")
-                            ) {
-                              router.push("/account");
-                            } else {
-                              router.push("/login");
-                            }
-                          }}
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          My Account
-                        </Link>
-
-                        <Link
-                          href="/myClubs"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          My Clubs
-                        </Link>
-
-                        <Link
-                          href="/createClub"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          Create Club
-                        </Link>
-
-                        <Link
-                          href="/clubAdmin"
-                          className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                        >
-                          Club Administration
-                        </Link>
-                        </>
+                          {items.map((item) => {
+                            const locked = item.auth && !isAuthenticated;
+                            return (
+                              <NavLink
+                                key={item.href}
+                                item={item}
+                                className="flex items-center gap-2 rounded-lg py-2 pl-6 pr-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                              >
+                                {item.label}
+                                {locked && <LockIcon />}
+                                {item.external && (
+                                  <span aria-hidden="true" className="text-gray-400">
+                                    &#8599;
+                                  </span>
+                                )}
+                              </NavLink>
+                            );
+                          })}
+                        </div>
                       )}
-                        {!currentUser ? (
-                          <>
-                            <Link
-                              href="/login"
-                              className="block rounded-lg.py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                            >
-                              Log in
-                            </Link>
-                            <Link
-                              href="/signUp"
-                              className="block rounded-lg.py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                            >
-                              Sign up
-                            </Link>
-                          </>
-                        ) : (
-                          <>
-                            <div className="block rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black">
-                              Hi {currentUser.username}!
-                            </div>
-                            <button
-                              onClick={handleSignOut}
-                              className="block w-full text-left rounded-lg py-2 pr-3 pl-6 text-sm font-semibold text-black hover:bg.white/5"
-                            >
-                              Sign out
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  );
+                })}
+              </div>
 
-                <div className="py-6" />
+              <div className="space-y-2 pt-6">
+                {isAuthenticated ? (
+                  <>
+                    <p className="px-3 text-sm font-semibold text-black">
+                      Hi {user.username || user.email}!
+                    </p>
+                    <button
+                      type="button"
+                      onClick={signOut}
+                      className="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-gray-600 hover:bg-gray-50"
+                    >
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="block rounded-lg px-3 py-2 text-base font-semibold text-black hover:bg-gray-50"
+                    >
+                      Log in
+                    </Link>
+                    <Link
+                      href="/signUp"
+                      className="hf-btn hf-btn-primary mt-2 w-full"
+                    >
+                      Sign up
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

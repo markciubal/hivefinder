@@ -7,10 +7,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Site-wide role. Distinct from ClubRole, which is per-club.
 enum Role {
   SUPERUSER
   MODERATOR
   MEMBER
+}
+
+/// Where a listing came from.
+///
+/// OFFICIAL entries are seeded from the university's recognized-organization
+/// directory (utilities/clubs.json) and are only created by the seed script.
+/// HIVE entries are student-made groups created in the app. They are shown
+/// under a different name so nobody mistakes one for a recognized org.
+enum ClubKind {
+  OFFICIAL
+  HIVE
+}
+
+/// A person's standing inside one club.
+///
+/// This replaces the old ClubModerator model. Membership and officership were
+/// two collections describing the same relationship, which meant they could
+/// disagree - run prisma/backfillClubRoles.js to fold the old rows in.
+enum ClubRole {
+  MEMBER
+  OFFICER
 }
 
 model User {
@@ -33,8 +55,15 @@ model User {
   role Role @default(MEMBER)
 
   // Back-relations
-  memberships Member[]       // clubs they belong to
-  moderations ClubModerator[] // clubs they moderate
+  memberships    Member[]        // clubs they belong to
+  eventsCreated  Event[]         @relation("EventCreator")
+  eventInterests EventInterest[]
+  messagesSent   Message[]
+  flagsReported  Flag[]          @relation("FlagReporter")
+  flagsResolved  Flag[]          @relation("FlagResolver")
+  notifications  Notification[]
+  blocksMade     Block[]         @relation("BlockBlocker")
+  blocksReceived Block[]         @relation("BlockBlocked")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -42,6 +71,12 @@ model User {
 
 model Club {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  /// OFFICIAL = recognized campus org, HIVE = student-made.
+  /// Only prisma/seedClubs.js may write OFFICIAL; the create API forces HIVE.
+  /// Existing documents predate this field - run prisma/backfillClubKind.js.
+  kind          ClubKind @default(HIVE)
+
   name          String
   description   String?
   categories    String[]
@@ -49,32 +84,226 @@ model Club {
   points        Int?
   clubUrl       String?
 
-  createdBy     String?  @db.ObjectId     // ← ADDED
-  createdAt     DateTime @default(now())  // ← ADDED
+  createdBy     String?  @db.ObjectId
+  createdAt     DateTime @default(now())
 
   members       Member[]
-  moderators    ClubModerator[]
+  events        Event[]
 }
-
 
 model Member {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   userId String @db.ObjectId
   clubId String @db.ObjectId
 
+  /// OFFICER may post events and manage the roster for this club.
+  /// The club's creator is seeded as OFFICER by the create API.
+  role ClubRole @default(MEMBER)
+
   user User @relation(fields: [userId], references: [id])
   club Club @relation(fields: [clubId], references: [id])
 
   joinedAt DateTime @default(now())
+
+  @@index([clubId, role])
 }
 
-model ClubModerator {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @db.ObjectId
-  clubId String @db.ObjectId
+/// Something a club is putting on. Officers create these; anyone can mark
+/// interest.
+model Event {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
 
-  user User @relation(fields: [userId], references: [id])
-  club Club @relation(fields: [clubId], references: [id])
+  clubId      String   @db.ObjectId
+  club        Club     @relation(fields: [clubId], references: [id])
 
-  assignedAt DateTime @default(now())
+  title       String
+  description String?
+  location    String?
+
+  /// Stored as a real DateTime so lists can sort and split past/upcoming.
+  /// The old stub form collected free text, which could not be ordered.
+  startsAt    DateTime
+  endsAt      DateTime?
+
+  imageUrl    String?
+  tags        String[] @default([])
+
+  createdBy   String   @db.ObjectId
+  creator     User     @relation("EventCreator", fields: [createdBy], references: [id])
+
+  cancelledAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  interests   EventInterest[]
+
+  @@index([clubId, startsAt])
+  @@index([startsAt])
+}
+
+/// "I'm interested!" - one row per user per event.
+model EventInterest {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+
+  eventId String @db.ObjectId
+  event   Event  @relation(fields: [eventId], references: [id])
+
+  userId  String @db.ObjectId
+  user    User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId])
+}
+
+/// A direct-message thread.
+///
+/// participantIds is a plain array rather than a relation: Prisma's Mongo
+/// connector has no clean many-to-many here, and every query we need is a
+/// `has` lookup on this field.
+model Conversation {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  participantIds String[] @db.ObjectId
+
+  /// Denormalised so the inbox can sort without loading every message.
+  lastMessageAt  DateTime @default(now())
+
+  createdAt      DateTime @default(now())
+
+  messages       Message[]
+
+  @@index([participantIds])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+
+  conversationId String       @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  senderId       String       @db.ObjectId
+  sender         User         @relation(fields: [senderId], references: [id])
+
+  body           String
+
+  /// User ids that have seen this message. Cheaper than a per-recipient row
+  /// for two-person threads.
+  readBy         String[]     @db.ObjectId
+
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+enum FlagTargetType {
+  CLUB
+  EVENT
+  MESSAGE
+  USER
+}
+
+enum FlagReason {
+  IMPERSONATION
+  SPAM
+  HARASSMENT
+  INAPPROPRIATE
+  INACCURATE
+  OTHER
+}
+
+enum FlagStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+/// A report raised by a user for a moderator to look at.
+///
+/// Deliberately polymorphic (targetType + targetId) rather than one model per
+/// reportable thing, so the moderation queue is a single list.
+model Flag {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+
+  targetType     FlagTargetType
+  targetId       String         @db.ObjectId
+
+  /// Copied at report time so the queue still reads sensibly after the target
+  /// is deleted.
+  targetLabel    String?
+
+  reason         FlagReason
+  details        String?
+
+  reporterId     String         @db.ObjectId
+  reporter       User           @relation("FlagReporter", fields: [reporterId], references: [id])
+
+  status         FlagStatus     @default(OPEN)
+
+  resolvedById   String?        @db.ObjectId
+  resolver       User?          @relation("FlagResolver", fields: [resolvedById], references: [id])
+  resolutionNote String?
+  resolvedAt     DateTime?
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([status, createdAt])
+  @@unique([targetType, targetId, reporterId])
+}
+
+enum NotificationType {
+  MESSAGE
+  EVENT_CREATED
+  EVENT_CANCELLED
+  CLUB_JOINED
+  OFFICER_GRANTED
+  OFFICER_REVOKED
+  FLAG_RECEIVED
+  FLAG_RESOLVED
+}
+
+/// One row per user per thing-worth-telling-them-about. Read state lives here
+/// rather than on the source record so the bell is a single cheap query.
+model Notification {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId    String           @db.ObjectId
+  user      User             @relation(fields: [userId], references: [id])
+
+  type      NotificationType
+  title     String
+  body      String?
+
+  /// Where clicking it should go.
+  href      String?
+
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+/// One person blocking another.
+///
+/// Directional in storage (who did it matters for unblocking and for what the
+/// UI says), but enforced both ways: neither side can message the other, and
+/// each disappears from the other's Friend Finder. A one-way block would let
+/// the blocker keep messaging someone who cannot reply.
+model Block {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  blockerId String   @db.ObjectId
+  blocker   User     @relation("BlockBlocker", fields: [blockerId], references: [id])
+
+  blockedId String   @db.ObjectId
+  blocked   User     @relation("BlockBlocked", fields: [blockedId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
 }

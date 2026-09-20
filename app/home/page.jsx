@@ -1,10 +1,7 @@
-import Header from '../components/header/Header';
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return (
-    <>
-      <Header />
-      <main style={{ padding: 24 }}>Home OK</main>
-    </>
-  );
+// /home was a scratch route that duplicated the landing page. Keep the URL
+// working, but serve the real thing.
+export default function HomePage() {
+  redirect("/");
 }

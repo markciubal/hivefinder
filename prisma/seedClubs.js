@@ -1,4 +1,5 @@
 // prisma/seedClubs.js
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
@@ -38,6 +39,10 @@ async function main() {
 
       await prisma.club.create({
         data: {
+          // This script is the ONLY writer of OFFICIAL. Everything created
+          // through the app is a HIVE, so an official listing can never be
+          // forged from the client.
+          kind: "OFFICIAL",
           name: club.name,
           description: club.description || "",
           categories: club.categories || [],

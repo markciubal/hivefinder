@@ -1,14 +1,40 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   HiveFinder design tokens
+   One place for the brand palette so pages stop hard-coding hex values.
+   ========================================================================== */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Brand */
+  --hf-sage: #c4ceb2;        /* panel / hero background */
+  --hf-sage-dark: #aab897;
+  --hf-green: #0b5a21;       /* primary action */
+  --hf-green-hover: #0e7a2c;
+  --hf-honey: #f4c201;       /* counters, accents */
+  --hf-ink: #171717;
+  --hf-muted: #6b7280;
+  --hf-line: #e5e7eb;
+  --hf-surface: #ffffff;
+  --hf-surface-alt: #f6f7f4;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-hf-sage: var(--hf-sage);
+  --color-hf-green: var(--hf-green);
+  --color-hf-honey: var(--hf-honey);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 @layer utilities {
   .text-xxs {
     font-size: 0.625rem; /* 10px */
-    line-height: 1rem;   /* optional */
+    line-height: 1rem;
   }
 
   .text-xxxs {
@@ -17,17 +43,82 @@
   }
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ==========================================================================
+   Shared building blocks
+   Used by PageShell and the demo/placeholder components so every screen
+   shares the same card, button and heading treatment.
+   ========================================================================== */
+@layer components {
+  .hf-card {
+    background: var(--hf-surface);
+    border: 1px solid var(--hf-line);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: var(--background);
-    --foreground: var(--foreground);
+  .hf-panel {
+    background: var(--hf-sage);
+    border-radius: 1.5rem;
+  }
+
+  .hf-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+  }
+
+  .hf-btn-primary {
+    background: var(--hf-green);
+    color: #fff;
+    border: 1px solid var(--hf-green);
+  }
+
+  .hf-btn-primary:hover:not(:disabled) {
+    background: var(--hf-green-hover);
+  }
+
+  .hf-btn-secondary {
+    background: var(--hf-surface);
+    color: var(--hf-ink);
+    border: 1px solid var(--hf-line);
+  }
+
+  .hf-btn-secondary:hover:not(:disabled) {
+    background: var(--hf-surface-alt);
+  }
+
+  .hf-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .hf-input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    color: var(--hf-ink);
+    background: var(--hf-surface);
+  }
+
+  .hf-input:focus {
+    outline: 2px solid var(--hf-green);
+    outline-offset: -1px;
+  }
+
+  .hf-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.25rem;
   }
 }
 
@@ -35,6 +126,16 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Demo/placeholder content is dimmed and non-interactive so it reads as a
+   preview rather than as the visitor's own data. */
+.hf-demo-surface {
+  position: relative;
+}
+
+.hf-demo-surface[data-locked="true"] {
+  user-select: none;
 }
 
 /* Additional global styles can be added here */
