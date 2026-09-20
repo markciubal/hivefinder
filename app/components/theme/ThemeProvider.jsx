@@ -11,6 +11,7 @@ import React, {
 import { useAuth } from "../auth/AuthProvider";
 import { apiFetch } from "../../lib/apiClient";
 import { DEFAULT_THEME, themeVars } from "../../lib/themes";
+import * as storage from "../../lib/safeStorage";
 
 /**
  * Cache shape: { theme, accent, vars }.
@@ -46,19 +47,14 @@ function applyVars(theme, accent) {
 }
 
 function cache(theme, accent, vars) {
-  try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ theme, accent, vars })
-    );
-  } catch {
-    // A full or blocked localStorage only costs the no-flash paint.
-  }
+  // A blocked or full localStorage only costs the no-flash paint on the next
+  // load, so a failed write is not worth reporting.
+  storage.setItem(STORAGE_KEY, JSON.stringify({ theme, accent, vars }));
 }
 
 function readCached() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = storage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return { theme: parsed.theme || DEFAULT_THEME, accent: parsed.accent || null };
@@ -84,7 +80,7 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     if (!token) {
       // Touching only external state here - the React value is derived above.
-      localStorage.removeItem(STORAGE_KEY);
+      storage.removeItem(STORAGE_KEY);
       applyVars(DEFAULT_THEME, null);
       return;
     }

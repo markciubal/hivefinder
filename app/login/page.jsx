@@ -8,7 +8,7 @@ import { useAuth } from "../components/auth/AuthProvider";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, isAuthenticated } = useAuth();
+  const { signIn, isAuthenticated, storageAvailable } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,6 +57,19 @@ export default function LoginPage() {
 
   return (
     <PageShell title="Log in" description="Welcome back to HiveFinder." width="sm">
+      {/* Sandboxed previews (VS Code's Simple Browser, some embedded views)
+          give the page an opaque origin, so the session cannot be stored.
+          Signing in still works for this page but will not survive a reload -
+          better to say so than to look broken. */}
+      {!storageAvailable && (
+        <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          <p className="font-semibold">This browser is blocking site storage.</p>
+          <p className="mt-1">
+            You can sign in, but you will be signed out again on reload. Opening
+            HiveFinder in a normal browser tab fixes it.
+          </p>
+        </div>
+      )}
       <form onSubmit={onSubmit} className="hf-card space-y-4 p-6">
         <div>
           <label className="hf-label" htmlFor="login-email">
