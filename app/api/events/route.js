@@ -6,6 +6,10 @@ import {
   requireClubOfficer,
   requireUser,
 } from "@/lib/apiAuth";
+import {
+  applyLocationVisibilityAll,
+  viewerSharesLocation,
+} from "@/lib/locationVisibility";
 
 /**
  * GET /api/events
@@ -63,7 +67,10 @@ export async function GET(req) {
       },
     });
 
-    return NextResponse.json(events);
+    const canSeeLocation = await viewerSharesLocation(req);
+    return NextResponse.json(
+      applyLocationVisibilityAll(events, canSeeLocation)
+    );
   } catch (err) {
     console.error("EVENT LIST ERROR:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

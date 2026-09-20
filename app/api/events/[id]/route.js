@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isObjectId, notify, requireClubOfficer, requireUser } from "@/lib/apiAuth";
+import {
+  applyLocationVisibility,
+  viewerSharesLocation,
+} from "@/lib/locationVisibility";
 
 /** GET /api/events/[id] - public. */
 export async function GET(req, { params }) {
@@ -35,7 +39,10 @@ export async function GET(req, { params }) {
       viewerInterested = Boolean(row);
     }
 
-    return NextResponse.json({ ...event, viewerInterested });
+    const canSeeLocation = await viewerSharesLocation(req);
+    return NextResponse.json(
+      applyLocationVisibility({ ...event, viewerInterested }, canSeeLocation)
+    );
   } catch (err) {
     console.error("EVENT GET ERROR:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

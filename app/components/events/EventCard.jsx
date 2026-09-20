@@ -55,6 +55,12 @@ export default function EventCard({ event, showClub = true }) {
                 {event.location}
               </>
             )}
+            {event.locationHidden && (
+              <>
+                <span aria-hidden="true"> · </span>
+                <span className="text-gray-500">Location hidden</span>
+              </>
+            )}
           </p>
 
           {event.description && (

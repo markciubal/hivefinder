@@ -16,10 +16,12 @@ enum Role {
 
 /// Where a listing came from.
 ///
-/// OFFICIAL entries are seeded from the university's recognized-organization
-/// directory (utilities/clubs.json) and are only created by the seed script.
-/// HIVE entries are student-made groups created in the app. They are shown
-/// under a different name so nobody mistakes one for a recognized org.
+/// HIVE is the only kind created now: student-made groups. Recognized campus
+/// organizations are handled entirely by CampusGroups and are no longer stored
+/// here - prisma/purgeOfficialClubs.js removes any that remain.
+///
+/// OFFICIAL is kept so historical rows still read, and so the distinction
+/// survives if the university roster is ever imported again.
 enum ClubKind {
   OFFICIAL
   HIVE
@@ -54,6 +56,13 @@ model User {
   // role with default MEMBER
   role Role @default(MEMBER)
 
+  /// Opt-in to location sharing, both ways.
+  /// Off by default: event locations are hidden from this user, and they are
+  /// warned that a location they post is only visible to others who opted in.
+  /// Reciprocal on purpose - you do not get to read where people will be
+  /// while keeping your own whereabouts private.
+  shareLocation Boolean @default(false)
+
   // Back-relations
   memberships    Member[]        // clubs they belong to
   eventsCreated  Event[]         @relation("EventCreator")
@@ -73,7 +82,7 @@ model Club {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
 
   /// OFFICIAL = recognized campus org, HIVE = student-made.
-  /// Only prisma/seedClubs.js may write OFFICIAL; the create API forces HIVE.
+  /// Nothing writes OFFICIAL any more; the create API forces HIVE.
   /// Existing documents predate this field - run prisma/backfillClubKind.js.
   kind          ClubKind @default(HIVE)
 

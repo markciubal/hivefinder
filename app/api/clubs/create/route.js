@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
+import { reservedClubName } from "@/lib/reservedNames";
 
 /**
  * Host fragments that would let a student-made hive pass itself off as the
@@ -56,27 +57,28 @@ export async function POST(req) {
     const wanted = normalizeName(name);
 
     // --- Guard 1: never let a hive take an official club's name. ------------
-    // Mongo has no case-insensitive unique index here, so compare in code
-    // against the (small) set of names that collide case-insensitively.
-    const collisions = await prisma.club.findMany({
-      where: { name: { equals: name, mode: "insensitive" } },
-      select: { id: true, name: true, kind: true },
-    });
-
-    const officialClash = collisions.find((c) => c.kind === "OFFICIAL");
+    // Read from utilities/clubs.json, not the database. Official clubs are no
+    // longer seeded, so querying Club rows for kind OFFICIAL would always come
+    // back empty and this check would pass everything.
+    const officialClash = reservedClubName(name);
     if (officialClash) {
       return NextResponse.json(
         {
           error:
-            `"${officialClash.name}" is an official Sacramento State club, so a hive ` +
-            `cannot use that name. If you help run it, contact us to claim the listing ` +
-            `instead — otherwise pick a name of your own.`,
+            `"${officialClash}" is an official Sacramento State club, so a hive ` +
+            `cannot use that name. Find it on CampusGroups — otherwise pick a ` +
+            `name of your own.`,
         },
         { status: 409 }
       );
     }
 
     // --- Guard 2: no duplicate hives either (README NFR4). ------------------
+    const collisions = await prisma.club.findMany({
+      where: { name: { equals: name, mode: "insensitive" } },
+      select: { id: true, name: true },
+    });
+
     if (collisions.some((c) => normalizeName(c.name) === wanted)) {
       return NextResponse.json(
         { error: `A hive called "${name}" already exists.` },
@@ -99,8 +101,9 @@ export async function POST(req) {
 
     const newClub = await prisma.club.create({
       data: {
-        // Forced, never read from the request body: OFFICIAL is reserved for
-        // prisma/seedClubs.js. Trusting the client here would undo the split.
+        // Forced, never read from the request body. Nothing creates OFFICIAL
+        // clubs any more - they live on CampusGroups - so every club this app
+        // holds is a hive.
         kind: "HIVE",
         name: String(name).trim(),
         description,

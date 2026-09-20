@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import PageShell from "../components/layout/PageShell";
 import RequireAuth, { DemoBanner } from "../components/auth/RequireAuth";
@@ -73,21 +73,14 @@ function MembershipCard({ entry, demo }) {
 }
 
 /**
- * Memberships split by tier.
+ * Memberships.
  *
- * A flat list would put "CSC 131 Study Crew" next to "Association of Latino
- * Professionals For America" as if they were the same kind of commitment.
- * Grouping keeps the distinction visible even once someone has joined things.
+ * This used to be split into official clubs and hives. Official clubs are no
+ * longer stored here at all - they are on CampusGroups - so after
+ * prisma/purgeOfficialClubs.js runs, only hives remain and the split would be
+ * an always-empty section.
  */
 function MembershipSections({ memberships, loading, error, demo }) {
-  const { official, hives } = useMemo(() => {
-    const official = [];
-    const hives = [];
-    memberships.forEach((m) =>
-      (kindOf(m.club) === OFFICIAL ? official : hives).push(m)
-    );
-    return { official, hives };
-  }, [memberships]);
 
   if (loading) {
     return (
@@ -106,7 +99,10 @@ function MembershipSections({ memberships, loading, error, demo }) {
     return (
       <div className="hf-card p-8 text-center">
         <p className="text-sm text-gray-600">
-          You have not joined anything yet.
+          You have not joined any hives yet.
+        </p>
+        <p className="mx-auto mt-1 max-w-md text-xs text-gray-500">
+          Official club membership lives on CampusGroups, not here.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           <Link href="/hives" className="hf-btn hf-btn-primary">
@@ -125,68 +121,12 @@ function MembershipSections({ memberships, loading, error, demo }) {
     );
   }
 
-  const section = (kind, entries) => {
-    const copy = KIND_COPY[kind];
-    return (
-      <section key={kind} className="mb-8">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <h2 className="text-lg font-bold text-black">{copy.Many}</h2>
-          <KindBadge kind={kind} size="xs" />
-          <span className="text-sm text-gray-500">({entries.length})</span>
-        </div>
-
-        {kind === OFFICIAL && (
-          <p className="mb-3 rounded-lg border border-gray-200 bg-[var(--hf-surface-alt)] px-3 py-2 text-xs text-gray-600">
-            Official club membership is held by the university.{" "}
-            <a
-              href={CAMPUS_GROUPS_LOGIN}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-[var(--hf-green)] underline"
-            >
-              Manage it on CampusGroups
-            </a>
-            .
-          </p>
-        )}
-
-        {entries.length === 0 ? (
-          <p className="hf-card p-5 text-sm text-gray-600">
-            None yet.{" "}
-            {copy.external ? (
-              <a
-                href={copy.browsePath}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-[var(--hf-green)] underline"
-              >
-                Browse {copy.many.toLowerCase()} on CampusGroups
-              </a>
-            ) : (
-              <Link
-                href={copy.browsePath}
-                className="font-semibold text-[var(--hf-green)] underline"
-              >
-                Browse {copy.many.toLowerCase()}
-              </Link>
-            )}
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {entries.map((entry) => (
-              <MembershipCard key={entry.id} entry={entry} demo={demo} />
-            ))}
-          </div>
-        )}
-      </section>
-    );
-  };
-
   return (
-    <>
-      {section(OFFICIAL, official)}
-      {section(HIVE, hives)}
-    </>
+    <div className="space-y-3">
+      {memberships.map((entry) => (
+        <MembershipCard key={entry.id} entry={entry} demo={demo} />
+      ))}
+    </div>
   );
 }
 
@@ -195,7 +135,7 @@ function MyClubsDemo() {
   return (
     <PageShell
       title="My Memberships"
-      description="Official clubs and student hives you belong to."
+      description="Hives you belong to."
       width="md"
     >
       <DemoBanner what="your membership list" />
@@ -241,7 +181,7 @@ function MyClubsReal() {
   return (
     <PageShell
       title="My Memberships"
-      description="Official clubs and student hives you belong to."
+      description="Hives you belong to."
       width="md"
       actions={
         <Link href="/createHive" className="hf-btn hf-btn-primary">

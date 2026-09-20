@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import PageShell from "../../components/layout/PageShell";
 import KindBadge from "../../components/clubs/KindBadge";
 import ReportButton from "../../components/moderation/ReportButton";
+import LocationSharing from "../../components/events/LocationSharing";
 import { useAuth } from "../../components/auth/AuthProvider";
 import { useSignInPrompt } from "../../components/auth/SignInPrompt";
 import { apiFetch, formatDateTime } from "../../lib/apiClient";
@@ -166,6 +167,14 @@ export default function EventDetailPage() {
               <div className="flex gap-2">
                 <dt className="font-semibold">Where</dt>
                 <dd>{event.location}</dd>
+              </div>
+            )}
+            {event.locationHidden && (
+              <div className="flex gap-2">
+                <dt className="font-semibold">Where</dt>
+                <dd>
+                  <LocationSharing compact onChange={() => load()} />
+                </dd>
               </div>
             )}
             <div className="flex gap-2">

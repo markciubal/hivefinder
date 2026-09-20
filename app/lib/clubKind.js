@@ -4,9 +4,9 @@
  * HiveFinder carries two very different things:
  *
  *  - OFFICIAL — one of the ~336 organizations Sacramento State officially
- *    recognizes, seeded from utilities/clubs.json with its real
- *    csus.campusgroups.com page. Students did not create these and cannot
- *    edit them here.
+ *    recognizes. These are no longer stored in HiveFinder at all: they live on
+ *    CampusGroups, and utilities/clubs.json survives only as the reserved-name
+ *    list in lib/reservedNames.js. The kind remains for historical rows.
  *
  *  - HIVE — a group a student made up inside this app. Perfectly legitimate,
  *    but it carries no university recognition.
