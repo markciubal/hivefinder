@@ -10,7 +10,7 @@ export default function ContactPage() {
       description="Questions about a club, your account, or something that looks broken? Reach out."
       width="md"
     >
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div>
         <section className="hf-card p-6">
           <h2 className="text-lg font-bold text-black">Email</h2>
           <p className="mt-2 text-sm text-gray-600">
@@ -24,16 +24,6 @@ export default function ContactPage() {
           </a>
         </section>
 
-        <section className="hf-card p-6">
-          <h2 className="text-lg font-bold text-black">On campus</h2>
-          <address className="mt-2 text-sm not-italic text-gray-600">
-            CSU Sacramento
-            <br />
-            6000 J St
-            <br />
-            Sacramento, CA 95819
-          </address>
-        </section>
       </div>
 
       <section className="hf-card mt-6 p-6">

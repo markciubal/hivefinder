@@ -147,7 +147,7 @@ function EventForm({ clubs, initial, onSubmit, error, msg, submitting, demo, onD
           className="hf-input"
           value={values.location}
           onChange={set("location")}
-          placeholder="Meet at Parking Structure III"
+          placeholder="General area, or how you will share it"
         />
       </div>
 

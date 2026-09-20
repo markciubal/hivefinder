@@ -27,7 +27,7 @@ export const DEMO_CLUBS = [
     id: "demo-club-2",
     name: "Hornet Hiking Collective",
     description:
-      "Weekend trips to the American River Parkway, Desolation Wilderness and beyond. Carpools leave from Parking Structure III.",
+      "Weekend hiking trips most weekends during term. Carpools arranged in the group chat.",
     categories: ["Outdoors", "Social"],
     fieldsOfStudy: ["Open to all majors"],
     points: 275,
@@ -38,7 +38,7 @@ export const DEMO_CLUBS = [
     id: "demo-club-3",
     name: "Capitol Debate Society",
     description:
-      "Parliamentary and policy debate, plus mock legislative sessions at the State Capitol each spring.",
+      "Parliamentary and policy debate, plus mock legislative sessions each spring.",
     categories: ["Academic", "Public Speaking"],
     fieldsOfStudy: ["Political Science", "Communications", "Law"],
     points: 240,
@@ -60,7 +60,7 @@ export const DEMO_CLUBS = [
     id: "demo-club-5",
     name: "Hornet Community Garden",
     description:
-      "Twenty raised beds behind the recreation center. Members get a plot, tools and far too much zucchini in August.",
+      "Members get a raised bed, shared tools and far too much zucchini in August.",
     categories: ["Outdoors", "Service"],
     fieldsOfStudy: ["Biology", "Environmental Studies"],
     points: 155,
@@ -91,7 +91,7 @@ export const DEMO_HIVES = [
     id: "demo-hive-1",
     name: "Tuesday Night Bouldering",
     description:
-      "Six of us carpool to the climbing gym most Tuesdays around 7. Beginners very welcome, we will teach you.",
+      "Six of us climb together most Tuesday evenings. Beginners very welcome, we will teach you.",
     categories: ["Outdoors", "Social"],
     fieldsOfStudy: ["Open to all majors"],
     points: null,
@@ -102,7 +102,7 @@ export const DEMO_HIVES = [
     id: "demo-hive-2",
     name: "CSC 131 Study Crew",
     description:
-      "Weekly problem sessions in the library basement before each exam. Shared notes, no lectures.",
+      "Weekly problem sessions before each exam. Shared notes, no lectures.",
     categories: ["Academic"],
     fieldsOfStudy: ["Computer Science"],
     points: null,
@@ -113,7 +113,7 @@ export const DEMO_HIVES = [
     id: "demo-hive-3",
     name: "Sunrise Run Club",
     description:
-      "6am loop along the river, three mornings a week. We stop for coffee after, which is honestly the real draw.",
+      "Early morning runs three times a week. We stop for coffee after, which is honestly the real draw.",
     categories: ["Fitness", "Outdoors"],
     fieldsOfStudy: ["Open to all majors"],
     points: null,
@@ -125,7 +125,7 @@ export const DEMO_HIVES = [
 export const DEMO_HIVE_DRAFT = {
   name: "Thursday Board Game Night",
   description:
-    "We take over a corner of the union most Thursdays from 6pm. Bring a game or just show up.",
+    "We play most Thursday evenings. Bring a game or just show up.",
   categories: "Social, Games",
   fields: "Open to all majors",
   clubUrl: "",
@@ -241,11 +241,11 @@ export const DEMO_CLUB_DRAFT = {
 export const DEMO_EVENT_DRAFT = {
   title: "Perseid Meteor Watch",
   description:
-    "Carpool to Loon Lake for the peak of the Perseids. Bring a sleeping bag and something warm.",
+    "Carpool out for the peak of the Perseids. Bring a sleeping bag and something warm.",
   // datetime-local format, which is what the create-event form binds to.
   startsAt: "2026-08-12T21:00",
   endsAt: "2026-08-13T01:00",
-  location: "Meet at Parking Structure III",
+  location: "Shared with people who mark interest",
   tags: ["Stargazing", "Camping", "Road Trip"],
 };
 
@@ -274,7 +274,7 @@ export const DEMO_EVENTS = [
     title: "Intro to Soldering Workshop",
     description:
       "Build a blinking badge in an hour. All tools and parts provided — just show up.",
-    location: "Riverside Hall 1004",
+    location: "Shared with people who mark interest",
     startsAt: daysFromNow(3, 17),
     endsAt: null,
     tags: ["Workshop", "Beginner friendly"],
@@ -284,10 +284,10 @@ export const DEMO_EVENTS = [
   },
   {
     id: "demo-event-2",
-    title: "Desolation Wilderness Day Hike",
+    title: "Weekend Day Hike",
     description:
-      "Eight miles, moderate. Carpools leave at 6:30am sharp. Bring lunch and two litres of water.",
-    location: "Parking Structure III",
+      "Eight miles, moderate. Early start. Bring lunch and two litres of water.",
+    location: "Meeting point shared with attendees",
     startsAt: daysFromNow(6, 6),
     endsAt: null,
     tags: ["Outdoors", "Carpool"],
@@ -299,7 +299,7 @@ export const DEMO_EVENTS = [
     id: "demo-event-3",
     title: "Tuesday Bouldering Session",
     description: "Usual time, usual gym. First-timers get a free shoe rental.",
-    location: "Granite Arch Climbing Gym",
+    location: "Shared with people who mark interest",
     startsAt: daysFromNow(2, 19),
     endsAt: null,
     tags: ["Climbing"],
@@ -311,7 +311,7 @@ export const DEMO_EVENTS = [
     id: "demo-event-4",
     title: "CSC 131 Midterm Review",
     description: "Working through last year's exam together. Bring questions.",
-    location: "Library 2nd floor, room 2020",
+    location: "Shared with people who mark interest",
     startsAt: daysFromNow(9, 16),
     endsAt: null,
     tags: ["Study"],
@@ -328,7 +328,7 @@ export const DEMO_THREADS = [
     other: { id: "demo-user-1", username: "priya_k" },
     lastMessageAt: daysFromNow(0, 9),
     lastMessage: {
-      body: "Are you going on the Desolation hike this weekend? I can drive.",
+      body: "Are you going on the hike this weekend? I can drive.",
     },
     unread: true,
   },

@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="mt-auto border-t border-gray-200 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-3 lg:px-8">
         <div>
           <img src="/logo.png" alt="HiveFinder" className="h-8 w-auto" />
           <p className="mt-3 text-sm text-gray-600">
@@ -41,17 +41,6 @@ export default function Footer() {
               </Link>
             </li>
           </ul>
-        </div>
-
-        <div>
-          <h2 className="text-sm font-semibold text-black">Location</h2>
-          <address className="mt-3 text-sm not-italic text-gray-600">
-            CSU Sacramento
-            <br />
-            6000 J St
-            <br />
-            Sacramento, CA 95819
-          </address>
         </div>
 
         <div>
