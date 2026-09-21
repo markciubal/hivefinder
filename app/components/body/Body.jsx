@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAuth } from "../auth/AuthProvider";
+import TourLauncher from "../tour/TourLauncher";
 import KindBadge from "../clubs/KindBadge";
 import { HIVE, OFFICIAL } from "../../lib/clubKind";
 
@@ -76,10 +77,12 @@ export default function Body() {
         )}
         {isAuthenticated && (
           <p className="mt-4 text-sm text-black/60">
-            Welcome back, {user.username || user.email}.
+            Welcome back, {user.username}.
           </p>
         )}
       </section>
+
+      <TourLauncher variant="card" />
 
       {/* Feature cards */}
       <section className="mt-8 grid gap-6 sm:grid-cols-3">

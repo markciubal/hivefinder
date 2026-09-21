@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "../auth/AuthProvider";
 import { NAV, visibleItems } from "./navConfig";
 import NotificationBell from "../notifications/NotificationBell";
+import TourLauncher from "../tour/TourLauncher";
 
 function ChevronIcon({ open }) {
   return (
@@ -192,6 +193,7 @@ export default function Header() {
                   key={entry.href}
                   href={entry.href}
                   className={topLink(entry.href)}
+                  data-tour={entry.tour}
                 >
                   {entry.label}
                 </Link>
@@ -207,6 +209,7 @@ export default function Header() {
                 <button
                   type="button"
                   aria-haspopup="true"
+                  data-tour={entry.tour}
                   aria-expanded={open}
                   onClick={() => setOpenDesktop(open ? null : entry.id)}
                   className={`flex items-center gap-x-1 ${linkBase} text-black hover:text-[var(--hf-green)]`}
@@ -257,6 +260,7 @@ export default function Header() {
 
         {/* Desktop auth actions */}
         <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:gap-4">
+          <TourLauncher />
           {status === "loading" ? (
             <span
               aria-hidden="true"
@@ -266,7 +270,7 @@ export default function Header() {
             <>
               <NotificationBell key={user?.id || "anon"} />
               <span className="text-sm/6 font-semibold text-black">
-                Hi {user.username || user.email}!
+                Hi {user.username}!
               </span>
               <button
                 type="button"
@@ -399,7 +403,7 @@ export default function Header() {
                 {isAuthenticated ? (
                   <>
                     <p className="px-3 text-sm font-semibold text-black">
-                      Hi {user.username || user.email}!
+                      Hi {user.username}!
                     </p>
                     <button
                       type="button"

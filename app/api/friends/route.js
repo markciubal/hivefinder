@@ -30,7 +30,7 @@ export async function GET(req) {
       .filter((u) => !hidden.has(u.id))
       .map((u) => ({
         id: u.id,
-        username: u.username || u.email.split('@')[0],
+        username: u.username,
         interests: u.interests || [],
         memberships: (u.memberships || []).map((m) => ({
           club: m.club?.name || '',

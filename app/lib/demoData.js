@@ -149,7 +149,6 @@ export const DEMO_PROFILE = {
   username: "demo_hornet",
   firstName: "Sam",
   lastName: "Rivera",
-  email: "sam.rivera@example.edu",
   about:
     "Third-year student. Into hiking, board games and anything with a soldering iron involved. Looking for people to carpool to trailheads with.",
   interests: [
@@ -345,5 +344,51 @@ export const DEMO_THREADS = [
     lastMessageAt: daysFromNow(-4, 20),
     lastMessage: { body: "See you Tuesday at the gym." },
     unread: false,
+  },
+];
+
+/**
+ * Rows for the chat map in demo mode.
+ *
+ * The real page hands <EulerMap> two tables out of the database - people, and
+ * one row per person-and-interest - so the preview is built from the students
+ * already invented for Friend Finder rather than a second cast. Subjects are
+ * lower-cased here because that is the shape the server's canonical names
+ * arrive in, and the preview should not flatter the real thing.
+ */
+const DEMO_CHAT_PEOPLE = [DEMO_PROFILE, ...DEMO_FRIENDS];
+
+export const DEMO_CHAT_ROWS = {
+  users: DEMO_CHAT_PEOPLE.map((p) => ({ id: p.id, username: p.username })),
+  interests: DEMO_CHAT_PEOPLE.flatMap((p) =>
+    (p.interests || []).map((interest) => ({
+      user_id: p.id,
+      interest: String(interest).toLowerCase(),
+    }))
+  ),
+};
+
+/** A sample conversation in the hiking + photography overlap. */
+export const DEMO_CHAT_MESSAGES = [
+  {
+    id: "demo-msg-1",
+    author: "priya_k",
+    body: "golden hour at the overlook is about 6:40 this week if anyone wants to shoot it",
+    at: new Date(daysFromNow(0, 8)).getTime(),
+    mine: false,
+  },
+  {
+    id: "demo-msg-2",
+    author: "demo_hornet",
+    body: "i can carpool, two seats free",
+    at: new Date(daysFromNow(0, 9)).getTime(),
+    mine: true,
+  },
+  {
+    id: "demo-msg-3",
+    author: "devon_w",
+    body: "bringing the long lens, there were kestrels last time",
+    at: new Date(daysFromNow(0, 10)).getTime(),
+    mine: false,
   },
 ];

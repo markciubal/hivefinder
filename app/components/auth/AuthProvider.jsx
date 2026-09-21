@@ -29,8 +29,6 @@ import * as storage from "../../lib/safeStorage";
  */
 const AuthContext = createContext(null);
 
-const SUPERUSER_EMAIL = "hivequeen.omega@hivefinder.local";
-
 const LOADING_SNAPSHOT = { status: "loading", user: null, token: null };
 const ANONYMOUS_SNAPSHOT = { status: "anonymous", user: null, token: null };
 
@@ -130,13 +128,13 @@ export function AuthProvider({ children }) {
       status,
       isLoading: status === "loading",
       isAuthenticated: status === "authenticated",
-      isSuperuser:
-        user?.role === "SUPERUSER" || user?.email === SUPERUSER_EMAIL,
+      // Role only. This used to also recognise a hardcoded superuser email
+      // address, which stopped meaning anything when accounts lost their
+      // email - and was never more than a backstop for the seeded account,
+      // which carries role SUPERUSER anyway.
+      isSuperuser: user?.role === "SUPERUSER",
       // Superusers outrank moderators, so they satisfy this too.
-      isModerator:
-        user?.role === "MODERATOR" ||
-        user?.role === "SUPERUSER" ||
-        user?.email === SUPERUSER_EMAIL,
+      isModerator: user?.role === "MODERATOR" || user?.role === "SUPERUSER",
       // False in a sandboxed preview or with storage blocked. Signing in still
       // works for the current page, but will not survive a reload.
       storageAvailable: storage.storageAvailable(),

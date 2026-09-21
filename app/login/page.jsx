@@ -10,7 +10,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { signIn, isAuthenticated, storageAvailable } = useAuth();
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
@@ -26,8 +26,8 @@ export default function LoginPage() {
     setErr("");
     setMsg("");
 
-    if (!email || !password) {
-      setErr("Enter your email and password");
+    if (!username || !password) {
+      setErr("Enter your username and password");
       return;
     }
 
@@ -36,7 +36,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username: username.trim(), password }),
       });
 
       const data = await res.json();
@@ -72,17 +72,17 @@ export default function LoginPage() {
       )}
       <form onSubmit={onSubmit} className="hf-card space-y-4 p-6">
         <div>
-          <label className="hf-label" htmlFor="login-email">
-            Email
+          <label className="hf-label" htmlFor="login-username">
+            Username
           </label>
           <input
-            id="login-email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="login-username"
+            name="username"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="hf-input"
-            placeholder="you@example.edu"
+            placeholder="yourname"
           />
         </div>
 
@@ -92,6 +92,7 @@ export default function LoginPage() {
           </label>
           <input
             id="login-password"
+            name="password"
             type="password"
             autoComplete="current-password"
             value={password}
@@ -114,7 +115,7 @@ export default function LoginPage() {
 
         <div className="flex items-center justify-between pt-2 text-sm">
           <Link href="/forgotPassword" className="text-gray-600 underline hover:text-black">
-            Forgot password?
+            Lost your password?
           </Link>
           <Link href="/signUp" className="text-gray-600 underline hover:text-black">
             Create an account

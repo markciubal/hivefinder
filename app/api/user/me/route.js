@@ -23,7 +23,6 @@ function shape(user) {
   return {
     id: user.id,
     username: user.username,
-    email: user.email,
     firstName: user.firstName || "",
     lastName: user.lastName || "",
     about: user.about || "",
@@ -66,8 +65,9 @@ export async function GET(req) {
 /**
  * PUT /api/user/me
  *
- * Username and role are deliberately not editable here. Username is the handle
- * other people see and referenced by messages; role is an authorization field
+ * Username and role are deliberately not editable here. Username is now the
+ * login credential as well as the handle other people see, so changing it is a
+ * credentials operation and not a profile edit; role is an authorization field
  * and must never be writable by its own holder.
  */
 export async function PUT(req) {
@@ -88,29 +88,9 @@ export async function PUT(req) {
       data.about = String(body.about).trim().slice(0, 2000) || null;
     }
 
-    if (body.email !== undefined) {
-      const email = String(body.email).trim().toLowerCase();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return NextResponse.json(
-          { error: "That does not look like an email address." },
-          { status: 400 }
-        );
-      }
-
-      // Email is unique in the schema, so a clash would otherwise surface as
-      // an opaque 500 from Prisma.
-      const taken = await prisma.user.findUnique({
-        where: { email },
-        select: { id: true },
-      });
-      if (taken && taken.id !== auth.userId) {
-        return NextResponse.json(
-          { error: "That email is already in use." },
-          { status: 409 }
-        );
-      }
-      data.email = email;
-    }
+    // An `email` in the body is ignored rather than rejected: HiveFinder no
+    // longer has anywhere to put one, and a client still sending it should not
+    // be stopped from saving the fields that do exist.
 
     if (body.interests !== undefined) {
       if (!Array.isArray(body.interests)) {

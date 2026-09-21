@@ -17,7 +17,6 @@ import { DEMO_PROFILE } from "../lib/demoData";
 function AccountForm({ profile, onSave, saving, err, msg, demo, onDemoAction }) {
   const [firstName, setFirst] = useState(profile.firstName || "");
   const [lastName, setLast] = useState(profile.lastName || "");
-  const [email, setEmail] = useState(profile.email || "");
   const [about, setAbout] = useState(profile.about || "");
   const [selectedInterests, setSelectedInterests] = useState(
     profile.interests || []
@@ -38,7 +37,7 @@ function AccountForm({ profile, onSave, saving, err, msg, demo, onDemoAction }) 
       onDemoAction("saving your profile");
       return;
     }
-    onSave({ firstName, lastName, email, about, interests: selectedInterests });
+    onSave({ firstName, lastName, about, interests: selectedInterests });
   }
 
   return (
@@ -58,21 +57,8 @@ function AccountForm({ profile, onSave, saving, err, msg, demo, onDemoAction }) 
               readOnly
             />
             <p className="mt-1 text-xs text-gray-500">
-              Usernames cannot be changed yet.
+              This is what you sign in with. It cannot be changed yet.
             </p>
-          </div>
-
-          <div>
-            <label className="hf-label" htmlFor="acct-email">
-              Email
-            </label>
-            <input
-              id="acct-email"
-              type="email"
-              className="hf-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
           </div>
 
           <div>
@@ -113,7 +99,10 @@ function AccountForm({ profile, onSave, saving, err, msg, demo, onDemoAction }) 
         </div>
       </section>
 
-      <section className="hf-card bg-[var(--hf-surface-alt)] p-6">
+      <section
+        className="hf-card bg-[var(--hf-surface-alt)] p-6"
+        data-tour="account-interests"
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-lg font-bold text-black">Interests</h2>
@@ -313,7 +302,9 @@ function AccountReal() {
             {/* Preferences save on their own, so they sit outside the
                 profile form rather than sharing its submit button. */}
             <div className="mt-6 space-y-6">
-              <ThemePicker />
+              <div data-tour="account-colours">
+                <ThemePicker />
+              </div>
 
               <section className="hf-card p-6">
                 <h2 className="text-lg font-bold text-black">Location sharing</h2>

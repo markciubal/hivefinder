@@ -5,27 +5,26 @@ const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 
 async function main() {
-  const email =
-    process.env.SUPERUSER_EMAIL || "hivequeen.omega@hivefinder.local";
+  // Keyed on username: accounts have no email address any more, so the
+  // username is the identity and the thing to upsert against.
+  const username = process.env.SUPERUSER_USERNAME || "HiveQueenOmega";
   const plainPassword =
     process.env.SUPERUSER_PASSWORD || "HiveQueenOmega!123";
 
   const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
   const superuser = await prisma.user.upsert({
-    where: { email },
+    where: { username },
     update: {
       password: hashedPassword,
       role: "SUPERUSER",
-      username: "HiveQueenOmega",
       firstName: "Hive",
       lastName: "Queen",
     },
     create: {
-      email,
+      username,
       password: hashedPassword,
       role: "SUPERUSER",
-      username: "HiveQueenOmega",
       firstName: "Hive",
       lastName: "Queen",
       interests: [],
@@ -33,9 +32,9 @@ async function main() {
   });
 
   console.log("Seeded SUPERUSER account:");
-  console.log(`  email:    ${superuser.email}`);
   console.log(`  username: ${superuser.username}`);
   console.log(`  password: ${plainPassword}`);
+  console.log("\nThere is no password reset - write this down.");
 }
 
 main()

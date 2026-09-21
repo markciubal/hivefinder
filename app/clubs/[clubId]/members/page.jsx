@@ -267,10 +267,7 @@ function Roster() {
                         <span className="text-xxs text-gray-500">(you)</span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500">
-                      @{m.user.username}
-                      {m.user.email && ` · ${m.user.email}`}
-                    </p>
+                    <p className="text-xs text-gray-500">@{m.user.username}</p>
                   </div>
 
                   <div className="flex flex-none flex-wrap gap-2">
