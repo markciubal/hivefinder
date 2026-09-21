@@ -39,8 +39,20 @@ enum ClubRole {
 
 model User {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  username  String?  @unique
-  email     String  @unique
+
+  /// The only login identifier, and the only way we can address someone.
+  ///
+  /// HiveFinder deliberately stores no email address. An account is a username
+  /// and a password, nothing else - see lib/username.js for what a valid one
+  /// looks like (notably, no "@", so nobody can quietly make their address the
+  /// handle). Run prisma/dropEmails.js to clear the column and its index from
+  /// databases created before this.
+  ///
+  /// The consequence is that there is no password reset: with no address to
+  /// send a link to and no second factor to prove who someone is, a reset
+  /// would just be a way to take over an account by asking. /signUp tells
+  /// people so, and offers them the credentials to save.
+  username  String  @unique
   password  String
   firstName String?
   lastName  String?
@@ -48,10 +60,6 @@ model User {
 
   //simple array of interest names for now
   interests String[] @default([])
-
-  resetToken    String?
-  resetExpires  DateTime?
-  resetLastSent DateTime?
 
   // role with default MEMBER
   role Role @default(MEMBER)

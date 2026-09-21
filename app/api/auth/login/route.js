@@ -1,68 +1,66 @@
-import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import { cleanUsername } from '@/lib/username';
+import { findByUsername } from '@/lib/findUser';
 
+/**
+ * Login by username. There is no email address to log in with any more.
+ */
 export async function POST(req) {
-  const { email, password } = await req.json();
+  const body = await req.json().catch(() => ({}));
+  const username = cleanUsername(body.username);
+  const password = String(body.password ?? '');
 
-  if (!email || !password) {
+  if (!username || !password) {
     return NextResponse.json(
-      { error: 'Missing email or password' },
+      { error: 'Enter your username and password' },
       { status: 400 }
     );
   }
 
-  // find user
-  const user = await prisma.user.findFirst({
-    where: { email },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-      password: true,
-      role: true
-    }
+  if (!process.env.NEXTAUTH_SECRET) {
+    console.error('NEXTAUTH_SECRET is not set - cannot issue a session.');
+    return NextResponse.json(
+      { error: 'Server auth is misconfigured.' },
+      { status: 500 }
+    );
+  }
+
+  const user = await findByUsername(username, {
+    id: true,
+    username: true,
+    password: true,
+    role: true,
   });
 
+  // Same message either way: whether a username exists is not something an
+  // unauthenticated caller gets to probe for.
   if (!user) {
-    return NextResponse.json(
-      { error: 'Invalid credentials' },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   }
 
-  // check password
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) {
-    return NextResponse.json(
-      { error: 'Invalid credentials' },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   }
 
-  // create JWT
   const token = jwt.sign(
     {
       id: user.id,
       username: user.username,
-      email: user.email,
-      role: user.role
+      role: user.role,
     },
     process.env.NEXTAUTH_SECRET,
     { expiresIn: '7d' }
   );
-
-  // 🔥 DEBUG LINE — prints token to terminal
-  console.log("LOGIN TOKEN:", token);
 
   return NextResponse.json({
     token,
     user: {
       id: user.id,
       username: user.username,
-      email: user.email,
-      role: user.role
-    }
+      role: user.role,
+    },
   });
 }

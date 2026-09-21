@@ -2,40 +2,46 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { cleanUsername, usernameError } from '@/lib/username';
 
 /**
- * Registration.
+ * Registration. Username and password, and nothing else.
+ *
+ * No email address is asked for or stored, so this is the only moment the
+ * password exists in a form anyone can read. The signup page turns the
+ * response into a "save these details" step; the password is never sent back
+ * from here, because the client already has the one the person typed.
  *
  * Returns the same { token, user } shape as /api/auth/login so the client can
- * sign the person straight in. README FR1 asks for auto-login after
- * registration; this route used to return only a userId, which forced the
- * signup page to bounce people to /login and make them type the password they
- * had just chosen.
+ * sign the person straight in (README FR1).
  */
 export async function POST(req) {
   try {
-    const { username, email, password } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const username = cleanUsername(body.username);
+    const password = String(body.password ?? '');
 
-    if (!username || !email || !password) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+    const badUsername = usernameError(username);
+    if (badUsername) {
+      return NextResponse.json({ error: badUsername }, { status: 400 });
     }
 
-    if (String(password).length < 8) {
+    if (password.length < 8) {
       return NextResponse.json(
         { error: 'Password must be at least 8 characters' },
         { status: 400 }
       );
     }
 
-    // Email and username are both unique in the schema. Check them separately
-    // so the message says which one is taken.
-    const existingEmail = await prisma.user.findUnique({ where: { email } });
-    if (existingEmail) {
-      return NextResponse.json({ error: 'Email already in use' }, { status: 400 });
-    }
-
-    const existingUsername = await prisma.user.findUnique({ where: { username } });
-    if (existingUsername) {
+    // Case-insensitively, so "Alice" cannot be registered against an existing
+    // "alice" and then be typed either way at the login form by two different
+    // people. The unique index is case-sensitive, so this check is what keeps
+    // the two from coexisting.
+    const existing = await prisma.user.findFirst({
+      where: { username: { equals: username, mode: 'insensitive' } },
+      select: { id: true },
+    });
+    if (existing) {
       return NextResponse.json(
         { error: 'That username is taken' },
         { status: 400 }
@@ -55,7 +61,6 @@ export async function POST(req) {
     const user = await prisma.user.create({
       data: {
         username,
-        email,
         password: hashedPassword,
         role: 'MEMBER',
       },
@@ -65,7 +70,6 @@ export async function POST(req) {
       {
         id: user.id,
         username: user.username,
-        email: user.email,
         role: user.role,
       },
       process.env.NEXTAUTH_SECRET,
@@ -79,11 +83,19 @@ export async function POST(req) {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email,
         role: user.role,
       },
     });
   } catch (err) {
+    // A unique-constraint violation here means someone registered the same
+    // name between the check above and the write. Say the useful thing rather
+    // than leaking a Prisma error.
+    if (err?.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'That username is taken' },
+        { status: 400 }
+      );
+    }
     console.error('SIGNUP ERROR:', err);
     return NextResponse.json(
       { error: err.message || 'Something went wrong' },

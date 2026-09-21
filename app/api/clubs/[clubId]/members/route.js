@@ -6,9 +6,11 @@ import { hiddenUserIds } from "@/lib/blocks";
 /**
  * GET /api/clubs/[clubId]/members
  *
- * The roster. Visible to members of the club; emails are only included for
- * officers, since a full member list with contact details is exactly the kind
- * of thing that should not be public.
+ * The roster. Visible to members of the club.
+ *
+ * There are no contact details left to gate: accounts have no email address,
+ * so the roster is names and usernames, and officers get the management
+ * actions rather than a different view of the people.
  */
 export async function GET(req, { params }) {
   try {
@@ -43,7 +45,7 @@ export async function GET(req, { params }) {
       );
     }
 
-    const canSeeContact = isSiteModerator || viewer?.role === "OFFICER";
+    const canManage = isSiteModerator || viewer?.role === "OFFICER";
 
     const members = await prisma.member.findMany({
       where: { clubId },
@@ -55,7 +57,6 @@ export async function GET(req, { params }) {
             username: true,
             firstName: true,
             lastName: true,
-            email: canSeeContact,
           },
         },
       },
@@ -70,7 +71,7 @@ export async function GET(req, { params }) {
       club,
       viewerId: auth.userId,
       viewerRole: isSiteModerator ? "OFFICER" : viewer?.role || null,
-      canManage: canSeeContact,
+      canManage,
       members: members.map((m) => ({ ...m, blocked: hidden.has(m.userId) })),
     });
   } catch (err) {

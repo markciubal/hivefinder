@@ -17,7 +17,6 @@ import { DEMO_PROFILE } from "../lib/demoData";
 function AccountForm({ profile, onSave, saving, err, msg, demo, onDemoAction }) {
   const [firstName, setFirst] = useState(profile.firstName || "");
   const [lastName, setLast] = useState(profile.lastName || "");
-  const [email, setEmail] = useState(profile.email || "");
   const [about, setAbout] = useState(profile.about || "");
   const [selectedInterests, setSelectedInterests] = useState(
     profile.interests || []
@@ -38,7 +37,7 @@ function AccountForm({ profile, onSave, saving, err, msg, demo, onDemoAction }) 
       onDemoAction("saving your profile");
       return;
     }
-    onSave({ firstName, lastName, email, about, interests: selectedInterests });
+    onSave({ firstName, lastName, about, interests: selectedInterests });
   }
 
   return (
@@ -58,21 +57,8 @@ function AccountForm({ profile, onSave, saving, err, msg, demo, onDemoAction }) 
               readOnly
             />
             <p className="mt-1 text-xs text-gray-500">
-              Usernames cannot be changed yet.
+              This is what you sign in with. It cannot be changed yet.
             </p>
-          </div>
-
-          <div>
-            <label className="hf-label" htmlFor="acct-email">
-              Email
-            </label>
-            <input
-              id="acct-email"
-              type="email"
-              className="hf-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
           </div>
 
           <div>

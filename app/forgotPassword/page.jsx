@@ -1,78 +1,67 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import PageShell from "../components/layout/PageShell";
-import { api } from "../lib/api";
 
+/**
+ * There is no password reset, and this page exists to say so.
+ *
+ * It used to email a reset link. HiveFinder no longer stores an email address
+ * for anyone, so there is nowhere to send one - and no way to tell the account
+ * holder apart from someone who wants their account. The honest version is to
+ * point people at the places their password might be and to be clear about
+ * what happens if it is not there.
+ *
+ * The route name stays /forgotPassword because that is what the login page has
+ * always linked to, and it is the thing people search for.
+ */
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState("");
-  const [err, setErr] = useState("");
-
-  async function onSubmit(e) {
-    e.preventDefault();
-    setMsg("");
-    setErr("");
-
-    if (!email) {
-      setErr("Enter your email");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await api("/api/auth/forgot-password", { method: "POST", body: { email } });
-      // The endpoint returns 200 whether or not the account exists, so the
-      // message deliberately does not confirm either way.
-      setMsg("If that email has an account, we sent a reset link. Check your inbox.");
-    } catch {
-      setErr("Could not send the email. Try again later.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <PageShell
-      title="Forgot password"
-      description="We will email you a link to set a new one."
+      title="Lost your password?"
+      description="HiveFinder has no email address for you, so there is no reset link."
       width="sm"
     >
-      <form onSubmit={onSubmit} className="hf-card space-y-4 p-6">
+      <div className="hf-card space-y-5 p-6 text-sm text-gray-700">
+        <p>
+          An account here is only a username and a password. That means nothing
+          to leak and nothing to spam — but it also means we cannot send you a
+          reset link, and no moderator can check that an account is yours.
+        </p>
+
         <div>
-          <label className="hf-label" htmlFor="fp-email">
-            Email
-          </label>
-          <input
-            id="fp-email"
-            type="email"
-            autoComplete="email"
-            className="hf-input"
-            placeholder="you@example.edu"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <h2 className="text-base font-bold text-black">Worth checking</h2>
+          <ul className="mt-2 list-disc space-y-2 pl-5">
+            <li>
+              Your password manager, or your browser&rsquo;s saved passwords —
+              look for this site&rsquo;s address.
+            </li>
+            <li>
+              Your downloads folder, for a file named{" "}
+              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">
+                hivefinder-login-&lt;username&gt;.txt
+              </code>
+              , offered when you signed up.
+            </li>
+            <li>Wherever you write passwords down.</li>
+          </ul>
         </div>
 
-        {err && <p className="text-sm text-red-600">{err}</p>}
-        {msg && <p className="text-sm text-green-700">{msg}</p>}
+        <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+          If none of those turn it up, the account cannot be recovered. You can
+          create a new one — you will need to rejoin your hives and your old
+          messages stay with the old account.
+        </p>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="hf-btn hf-btn-primary w-full"
-        >
-          {loading ? "Sending…" : "Send reset link"}
-        </button>
-
-        <p className="pt-2 text-center text-sm text-gray-600">
-          <Link href="/login" className="underline hover:text-black">
+        <div className="flex flex-col gap-3 pt-1 sm:flex-row">
+          <Link href="/login" className="hf-btn hf-btn-secondary flex-1">
             Back to log in
           </Link>
-        </p>
-      </form>
+          <Link href="/signUp" className="hf-btn hf-btn-primary flex-1">
+            Create a new account
+          </Link>
+        </div>
+      </div>
     </PageShell>
   );
 }

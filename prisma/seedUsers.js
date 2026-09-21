@@ -13,7 +13,6 @@ async function main() {
   const exampleUsers = [
     {
       username: 'alice',
-      email: 'alice@example.com',
       firstName: 'Alice',
       lastName: 'Kim',
       about: 'CS student who loves hackathons and late-night coding.',
@@ -21,7 +20,6 @@ async function main() {
     },
     {
       username: 'bob',
-      email: 'bob@example.com',
       firstName: 'Bob',
       lastName: 'Martinez',
       about: 'Mechanical engineering major into robotics and men’s soccer.',
@@ -29,7 +27,6 @@ async function main() {
     },
     {
       username: 'chloe',
-      email: 'chloe@example.com',
       firstName: 'Chloe',
       lastName: 'Nguyen',
       about: 'Music lover who spends weekends volunteering.',
@@ -37,7 +34,6 @@ async function main() {
     },
     {
       username: 'derek',
-      email: 'derek@example.com',
       firstName: 'Derek',
       lastName: 'Johnson',
       about: 'Esports and streaming addict, future media studies major.',
@@ -47,9 +43,8 @@ async function main() {
 
   for (const u of exampleUsers) {
     const user = await prisma.user.upsert({
-      where: { email: u.email }, // email is unique in your schema
+      where: { username: u.username }, // the only identity we keep
       update: {
-        username: u.username,
         firstName: u.firstName,
         lastName: u.lastName,
         about: u.about,
@@ -58,7 +53,6 @@ async function main() {
       },
       create: {
         username: u.username,
-        email: u.email,
         firstName: u.firstName,
         lastName: u.lastName,
         about: u.about,
@@ -67,7 +61,7 @@ async function main() {
       },
     });
 
-    console.log(`Upserted user ${user.email}`);
+    console.log(`Upserted user ${user.username}`);
   }
 
   console.log('Done seeding users ✅');

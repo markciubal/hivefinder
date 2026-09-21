@@ -2,6 +2,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { cleanUsername } from "@/lib/username";
+import { findByUsername } from "@/lib/findUser";
 
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
@@ -12,14 +14,17 @@ export const authOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "text" },
+        username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) return null;
+        const username = cleanUsername(credentials?.username);
+        if (!username || !credentials?.password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+        const user = await findByUsername(username, {
+          id: true,
+          username: true,
+          password: true,
         });
         if (!user) return null;
 
@@ -29,7 +34,9 @@ export const authOptions = {
         );
         if (!isValid) return null;
 
-        return { id: user.id, name: user.username, email: user.email };
+        // No email field: NextAuth treats it as optional, and there is no
+        // address to put in it.
+        return { id: user.id, name: user.username };
       },
     }),
   ],

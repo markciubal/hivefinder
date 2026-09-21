@@ -66,6 +66,9 @@ export const NAV = [
   },
   { label: "Events", href: "/events" },
   { label: "Friend Finder", href: "/friendFinder" },
+  // Rooms are derived from interests rather than created, so there is nothing
+  // to browse and no "my rooms" to keep separate - one destination is all of it.
+  { label: "Chat", href: "/chat" },
   { label: "Contact", href: "/contact" },
   {
     label: "Account",

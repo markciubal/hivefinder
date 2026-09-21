@@ -65,8 +65,9 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 1. User Account Management
 - Create, Read, Update, Delete (CRUD) user accounts  
-- Password recovery  
-- Account management (update password, change interests, etc.)  
+- Accounts are a username and a password only - no email address is asked for or stored  
+- No password recovery: signup shows the credentials once, to save to a password manager, write down, or download  
+- Account management (change interests, profile, colours, etc.)  
 - Auto-login after registration  
 
 ### 2. Browse / Club Listings
@@ -99,7 +100,7 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Non-Functional Requirements
 | ID | Category | Description |
 |----|-----------|-------------|
-| NFR1 | Student/Admin Account | Password reset with email verification; login ≤ 30s; unlimited users |
+| NFR1 | Student/Admin Account | Username/password accounts with no stored email, and so no reset path; login ≤ 30s; unlimited users |
 | NFR2 | Club Listing | Accessible 24/7; 99% uptime |
 | NFR3 | Pinboard/Dashboard | Live updates ≤ 2s delay; Google Maps integration; QR scan accuracy |
 | NFR4 | Club Creation | Real-time creation with duplicate club prevention |

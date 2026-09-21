@@ -76,7 +76,7 @@ export default function Body() {
         )}
         {isAuthenticated && (
           <p className="mt-4 text-sm text-black/60">
-            Welcome back, {user.username || user.email}.
+            Welcome back, {user.username}.
           </p>
         )}
       </section>

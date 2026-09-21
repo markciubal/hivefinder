@@ -266,7 +266,7 @@ export default function Header() {
             <>
               <NotificationBell key={user?.id || "anon"} />
               <span className="text-sm/6 font-semibold text-black">
-                Hi {user.username || user.email}!
+                Hi {user.username}!
               </span>
               <button
                 type="button"
@@ -399,7 +399,7 @@ export default function Header() {
                 {isAuthenticated ? (
                   <>
                     <p className="px-3 text-sm font-semibold text-black">
-                      Hi {user.username || user.email}!
+                      Hi {user.username}!
                     </p>
                     <button
                       type="button"
