@@ -96,9 +96,24 @@ export async function POST(req) {
         { status: 400 }
       );
     }
+    // Never return err.message from here. An unreachable database made Prisma
+    // throw a message carrying absolute server paths and lines of compiled
+    // source, and this handed all of it to the browser. The detail belongs in
+    // the server log; the caller gets something it can act on.
     console.error('SIGNUP ERROR:', err);
+
+    const unreachable =
+      err?.name === 'PrismaClientInitializationError' ||
+      /Server selection timeout|Raw query failed|ECONNREFUSED/i.test(
+        String(err?.message ?? '')
+      );
+
     return NextResponse.json(
-      { error: err.message || 'Something went wrong' },
+      {
+        error: unreachable
+          ? 'Cannot reach the database right now. Try again in a moment.'
+          : 'Something went wrong creating your account.',
+      },
       { status: 500 }
     );
   }
