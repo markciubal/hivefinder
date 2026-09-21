@@ -56,17 +56,17 @@ export const STEPS = [
   },
   {
     id: "rooms",
-    path: "/rooms",
-    anchor: "rooms-map",
+    path: "/chat",
+    anchor: "chat-map",
     title: "Your interests are a map",
     body: "Each circle is a subject and each overlap is a room. Where circles cross, so do the people — that overlap is where a conversation already has something to be about.",
   },
   {
     id: "chat",
-    path: "/rooms",
-    anchor: "rooms-panel",
+    path: "/chat",
+    anchor: "chat-room",
     title: "Pick an overlap and start talking",
-    body: "Narrow rooms are quiet and specific; broad ones are busy. Choose a region on the map, then open it.",
+    body: "Narrow rooms are quiet and specific; broad ones are busy. Pick a region on the map and start talking — no joining, no invites. Your interests already put you there.",
     final: true,
   },
 ];
