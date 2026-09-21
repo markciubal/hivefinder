@@ -44,6 +44,7 @@ export const NAV = [
   {
     label: "Hives",
     id: "hives",
+    tour: "nav-hives",
     items: [
       {
         label: "Browse Hives",
@@ -64,7 +65,8 @@ export const NAV = [
       },
     ],
   },
-  { label: "Events", href: "/events" },
+  { label: "Events", href: "/events", tour: "nav-events" },
+  { label: "Rooms", href: "/rooms" },
   { label: "Friend Finder", href: "/friendFinder" },
   // Rooms are derived from interests rather than created, so there is nothing
   // to browse and no "my rooms" to keep separate - one destination is all of it.

@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
+import { TourProvider } from "./components/tour/TourProvider";
+import TourOverlay from "./components/tour/TourOverlay";
 import Header from "./components/header/Header";
 import Footer from "./components/footer/Footer";
 
@@ -65,9 +67,12 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ThemeProvider>
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
+            <TourProvider>
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <TourOverlay />
+            </TourProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

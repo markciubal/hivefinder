@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAuth } from "../auth/AuthProvider";
+import TourLauncher from "../tour/TourLauncher";
 import KindBadge from "../clubs/KindBadge";
 import { HIVE, OFFICIAL } from "../../lib/clubKind";
 
@@ -80,6 +81,8 @@ export default function Body() {
           </p>
         )}
       </section>
+
+      <TourLauncher variant="card" />
 
       {/* Feature cards */}
       <section className="mt-8 grid gap-6 sm:grid-cols-3">

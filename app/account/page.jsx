@@ -99,7 +99,10 @@ function AccountForm({ profile, onSave, saving, err, msg, demo, onDemoAction }) 
         </div>
       </section>
 
-      <section className="hf-card bg-[var(--hf-surface-alt)] p-6">
+      <section
+        className="hf-card bg-[var(--hf-surface-alt)] p-6"
+        data-tour="account-interests"
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-lg font-bold text-black">Interests</h2>
@@ -299,7 +302,9 @@ function AccountReal() {
             {/* Preferences save on their own, so they sit outside the
                 profile form rather than sharing its submit button. */}
             <div className="mt-6 space-y-6">
-              <ThemePicker />
+              <div data-tour="account-colours">
+                <ThemePicker />
+              </div>
 
               <section className="hf-card p-6">
                 <h2 className="text-lg font-bold text-black">Location sharing</h2>
