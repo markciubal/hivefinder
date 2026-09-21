@@ -139,8 +139,6 @@ function RoomChips({ rooms, selected, onSelect }) {
 function ChatLayout({
   rows,
   focus,
-  view,
-  onView,
   room,
   rooms,
   onSelectRoom,
@@ -150,34 +148,24 @@ function ChatLayout({
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <section className="hf-card p-4" data-tour="chat-map">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-black">
-            Where your interests overlap
-          </h2>
-          <button
-            type="button"
-            onClick={() => onView(view === "map" ? "atlas" : "map")}
-            className="hf-btn hf-btn-secondary px-3 py-1 text-xs"
-          >
-            {view === "map" ? "See the atlas" : "See the map"}
-          </button>
-        </div>
+        <h2 className="text-sm font-bold text-black">
+          Where your interests overlap
+        </h2>
 
         <div className="mt-3 h-[380px]">
           <RoomMap
             users={rows.users}
             interests={rows.interests}
             focus={focus}
-            view={view}
+            view="atlas"
             onSelectRoom={onSelectRoom}
             onRender={onRender}
           />
         </div>
 
         <p className="mt-2 text-xxs text-gray-500">
-          Circle areas are populations and overlaps are shared membership, so
-          the picture is the map of who is here. A room you are not in is
-          dashed.
+          Every region is a room, sized by how many people hold exactly that
+          combination of interests. Rooms outside your own are faded.
         </p>
 
         <RoomChips rooms={rooms} selected={room?.key} onSelect={onSelectRoom} />
@@ -195,7 +183,6 @@ function ChatLayout({
 
 function ChatDemo() {
   const { promptSignIn, prompt } = useSignInPrompt();
-  const [view, setView] = useState("map");
   const [rooms, setRooms] = useState([]);
   const [room, setRoom] = useState(null);
 
@@ -211,8 +198,6 @@ function ChatDemo() {
       <ChatLayout
         rows={DEMO_CHAT_ROWS}
         focus={DEMO_PROFILE.id}
-        view={view}
-        onView={setView}
         room={room}
         rooms={rooms}
         onSelectRoom={setRoom}
@@ -247,7 +232,6 @@ function ChatReal() {
 
   const [state, setState] = useState(null);
   const [loadError, setLoadError] = useState("");
-  const [view, setView] = useState("map");
   const [rooms, setRooms] = useState([]);
   const [room, setRoom] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -425,8 +409,6 @@ function ChatReal() {
       <ChatLayout
         rows={state.rows}
         focus={state.me.id}
-        view={view}
-        onView={setView}
         room={room}
         rooms={rooms}
         onSelectRoom={openRoom}
