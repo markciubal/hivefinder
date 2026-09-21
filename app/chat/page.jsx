@@ -149,7 +149,7 @@ function ChatLayout({
 }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-      <section className="hf-card p-4">
+      <section className="hf-card p-4" data-tour="chat-map">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-bold text-black">
             Where your interests overlap
@@ -183,7 +183,12 @@ function ChatLayout({
         <RoomChips rooms={rooms} selected={room?.key} onSelect={onSelectRoom} />
       </section>
 
-      <section className="hf-card flex min-h-[420px] flex-col p-4">{children}</section>
+      <section
+        className="hf-card flex min-h-[420px] flex-col p-4"
+        data-tour="chat-room"
+      >
+        {children}
+      </section>
     </div>
   );
 }
